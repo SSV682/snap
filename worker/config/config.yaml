@@ -1,0 +1,31 @@
+#bot:
+#  PreferredPositionPrice:  200, # Предпочтительная стоимость открытия позиции в валюте
+#  MaxPositionPrice:        600, # Максимальная стоимость открытия позиции в валюте
+#  TopInstrumentsQuantity:  10,  # Минимальный процент выгоды, с которым можно совершать сделки
+#  MinProfit:               0.3, # Минимальный процент выгоды, с которым можно совершать сделки
+#  DaysToCalculateInterval: 3,   # Кол-во дней, на которых рассчитывается интервал цен для торговли
+#  StopLossPercent:         1.8, # Процент изменения цены, для стоп-лосс заявки
+#  AnalyseLowPercentile:    0,   # Нижний процентиль для расчета интервала
+#  AnalyseHighPercentile:   0,   # ерхний процентиль для расчета интервала
+#  Analyse:                 bot.BEST_WIDTH, # Тип анализа исторических свечей при расчете интервала
+#  // Параметры ниже не влияют на успех стратегии
+#  IntervalUpdateDelay:   time.Minute * MINUTES,    # Время ожидания для перерасчета интервала цены
+#  SellOut:               true,                     # Если true, то по достижению дедлайна бот выходит из всех активных позиций
+#  StorageDBPath:         "candles/candles.db",     # Путь к бд sqlite, в которой лежат исторические свечи по инструментам
+#  StorageCandleInterval: pb.CandleInterval_CANDLE_INTERVAL_1_MIN, # Интервал для обновления и запроса исторических свечей
+}
+
+invest:
+  AccountID: ""
+  APIToken: "t.-g2iCbUiAcSEJO4gJHzNy-EffcmKdigW87r6opyYxXL9esWnHEPzayb7_iDlaY6CwrMSiE1GEPC-__484ZDuoQ"
+  EndPoint: sandbox-invest-public-api.tinkoff.ru:443
+  AppName: snap-bot
+  DisableResourceExhaustedRetry: true
+  DisableAllRetry: true
+  MaxRetries: 3
+
+httpserver:
+  listen: :8080
+  read_timeout: 60s
+  write_timeout: 60s
+
