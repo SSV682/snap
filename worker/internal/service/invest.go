@@ -1,9 +1,8 @@
 package service
 
 import (
-	"fmt"
-	"snap/worker/internal/entity"
 	"time"
+	"worker/internal/entity"
 )
 
 type TradingInfoProvider interface {
@@ -12,25 +11,28 @@ type TradingInfoProvider interface {
 
 type Config struct {
 	TradingInfoProvider TradingInfoProvider
+	SignalCh            chan Event
 }
 
 type Calculator struct {
 	tradingInfoProvider TradingInfoProvider
+	signalCh            chan Event
 }
 
 func NewCalculator(cfg *Config) *Calculator {
 	return &Calculator{
 		tradingInfoProvider: cfg.TradingInfoProvider,
+		signalCh:            cfg.SignalCh,
 	}
 }
 
 func (c *Calculator) HistoricCandles() {
-	candles, err := c.tradingInfoProvider.HistoricCandles("TCSG", time.Now().Add(-1*time.Hour), time.Now())
+	candles, err := c.tradingInfoProvider.HistoricCandles("TCSG", time.Now().Add(-48*time.Hour), time.Now().Add(-47*time.Hour))
 	if err != nil {
 		return
 	}
 
-	//var positiveFlag bool
+	var positiveFlag bool
 
 	for i, candle := range candles {
 		if i < 5 {
@@ -49,7 +51,23 @@ func (c *Calculator) HistoricCandles() {
 
 		metricVWAP := financialVolume / float64(tradingVolume)
 
-		fmt.Printf("VWAP: %f", metricVWAP)
-		fmt.Printf("Price: %f", candle.Close)
+		//fmt.Printf("Price: %f, VWAP: %f \n", candle.Close, metricVWAP)
+
+		if metricVWAP < candle.Close && !positiveFlag {
+			positiveFlag = true
+
+			c.signalCh <- Event{
+				Typ:   Buy,
+				Price: candle.Close,
+			}
+		}
+
+		if metricVWAP > candle.Close && positiveFlag {
+			positiveFlag = false
+			c.signalCh <- Event{
+				Typ:   Sell,
+				Price: candle.Close,
+			}
+		}
 	}
 }

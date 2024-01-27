@@ -3,12 +3,18 @@ package v1
 import routing "github.com/qiangxue/fasthttp-routing"
 
 const (
-	investURI  = "invest"
-	candlesURI = "candles"
+	investURI  = "/invest"
+	candlesURI = "/candles"
 )
 
 func (a *API) registerInvestHandlers(group *routing.RouteGroup) {
-	deploymentsGroup := group.Group(investURI)
+	investGroup := group.Group(investURI)
 
-	deploymentsGroup.Get(candlesURI)
+	investGroup.Get(candlesURI, a.GetHistoricCandles)
+}
+
+func (a *API) GetHistoricCandles(_ *routing.Context) error {
+	a.investService.HistoricCandles()
+
+	return nil
 }

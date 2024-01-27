@@ -4,7 +4,7 @@ import (
 	"context"
 	"log"
 
-	"snap/worker/internal/entity"
+	"worker/internal/entity"
 
 	"github.com/jmoiron/sqlx"
 )

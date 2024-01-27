@@ -4,8 +4,8 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"snap/worker/internal/entity"
 	"time"
+	"worker/internal/entity"
 
 	"github.com/russianinvestments/invest-api-go-sdk/investgo"
 	investapi "github.com/russianinvestments/invest-api-go-sdk/proto"
@@ -73,7 +73,7 @@ func (c *Client) HistoricCandles(ticker string, timeFrom, timeTo time.Time) ([]e
 		return nil, fmt.Errorf("get historic candles: %v", err)
 	}
 
-	result := make([]entity.Candle, 0, len(candles))
+	result := make([]entity.Candle, len(candles))
 
 	for i, candle := range candles {
 		result[i] = entity.Candle{

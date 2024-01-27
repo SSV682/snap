@@ -13,7 +13,7 @@
 #  SellOut:               true,                     # Если true, то по достижению дедлайна бот выходит из всех активных позиций
 #  StorageDBPath:         "candles/candles.db",     # Путь к бд sqlite, в которой лежат исторические свечи по инструментам
 #  StorageCandleInterval: pb.CandleInterval_CANDLE_INTERVAL_1_MIN, # Интервал для обновления и запроса исторических свечей
-}
+#}
 
 invest:
   AccountID: ""

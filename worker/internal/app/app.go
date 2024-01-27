@@ -4,12 +4,12 @@ import (
 	"context"
 	"os"
 	"os/signal"
-	"snap/worker/internal/config"
-	"snap/worker/internal/handlers"
-	v1 "snap/worker/internal/handlers/v1"
-	"snap/worker/internal/infrastructure/tinkoff"
-	"snap/worker/internal/service"
 	"syscall"
+	"worker/internal/config"
+	"worker/internal/handlers"
+	v1 "worker/internal/handlers/v1"
+	"worker/internal/infrastructure/tinkoff"
+	"worker/internal/service"
 
 	routing "github.com/qiangxue/fasthttp-routing"
 	"github.com/russianinvestments/invest-api-go-sdk/investgo"
@@ -17,9 +17,14 @@ import (
 	"github.com/valyala/fasthttp"
 )
 
+type RunAsService interface {
+	Run()
+}
+
 type App struct {
 	cfg        *config.Config
 	httpServer *fasthttp.Server
+	runners    []RunAsService
 }
 
 func NewApp(configPath string) *App {
@@ -47,19 +52,25 @@ func NewApp(configPath string) *App {
 		return nil
 	}
 
+	signalCh := make(chan service.Event)
+
 	stockService := service.NewCalculator(
 		&service.Config{
 			TradingInfoProvider: client,
+			SignalCh:            signalCh,
 		},
 	)
+
+	var runners []RunAsService
+
+	manager := service.NewManager(signalCh)
+	runners = append(runners, manager)
 
 	log.Info("App created")
 
 	handlers.Register(
 		router,
-		v1.NewInvestHandler(
-			stockService,
-		),
+		v1.NewInvestHandler(stockService),
 	)
 
 	return &App{
@@ -69,11 +80,16 @@ func NewApp(configPath string) *App {
 			ReadTimeout:  cfg.HTTPServerConfig.ReadTimeout,
 			WriteTimeout: cfg.HTTPServerConfig.WriteTimeout,
 		},
+		runners: runners,
 	}
 }
 
 func (a *App) Run() {
 	ctx, cancel := context.WithCancel(context.Background())
+
+	for _, runner := range a.runners {
+		runner.Run()
+	}
 
 	go func() {
 		if err := a.httpServer.ListenAndServe(a.cfg.HTTPServerConfig.Listen); err != nil {

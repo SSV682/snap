@@ -3,7 +3,7 @@ package main
 import (
 	"flag"
 
-	"snap/worker/internal/app"
+	"worker/internal/app"
 )
 
 var (

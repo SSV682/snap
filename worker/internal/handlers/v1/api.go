@@ -13,23 +13,17 @@ type InvestService interface {
 }
 
 type API struct {
-	invService InvestService
+	investService InvestService
 }
 
 func NewInvestHandler(srv InvestService) *API {
 	return &API{
-		invService: srv,
+		investService: srv,
 	}
 }
 
 func (a *API) RegisterHandlers(group *routing.RouteGroup) {
-	group = group.Group(versionAPI)
+	v1Group := group.Group(versionAPI)
 
-	a.registerInvestHandlers(group)
-}
-
-func (a *API) GetHistoricCandles(_ *routing.Context) error {
-	a.invService.HistoricCandles()
-
-	return nil
+	a.registerInvestHandlers(v1Group)
 }

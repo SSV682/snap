@@ -1,8 +1,8 @@
 package postgres
 
 import (
-	"snap/worker/internal/entity"
 	"time"
+	"worker/internal/entity"
 )
 
 type CandleRow struct {
