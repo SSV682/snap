@@ -2,6 +2,7 @@ package v1
 
 import (
 	"worker/internal/dto"
+	"worker/internal/entity"
 
 	routing "github.com/qiangxue/fasthttp-routing"
 )
@@ -11,7 +12,7 @@ const (
 )
 
 type InvestService interface {
-	Backtest(filter dto.Filter) ([]string, error)
+	Backtest(filter dto.Filter) (entity.BackTestResult, error)
 }
 
 type Validator interface {

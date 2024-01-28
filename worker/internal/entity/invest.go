@@ -12,3 +12,20 @@ type Candle struct {
 	Volume int64     //Объём торгов в лотах.
 	Time   time.Time //Время свечи в часовом поясе UTC.
 }
+
+type BackTestResult struct {
+	NumberDial int
+	PNL        float64
+	Dials      []Dial
+}
+
+type Dial struct {
+	Buy    float64
+	Sell   float64
+	PNL    float64
+	Period int
+}
+
+func (d *Dial) CalculatePNL() {
+	d.PNL = d.Sell - d.Buy
+}

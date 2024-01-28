@@ -8,6 +8,9 @@ import (
 	"worker/internal/entity"
 )
 
+type taxFn func(price float64) float64
+type createTradingStrategy func(inCh chan entity.Candle, outCh chan Event) TradingStrategy
+
 type TradingInfoProvider interface {
 	HistoricCandles(ticker string, timeFrom, timeTo time.Time) ([]entity.Candle, error)
 }
@@ -33,24 +36,30 @@ func NewCalculator(cfg *Config) *Calculator {
 	}
 }
 
-func (c *Calculator) Backtest(filter dto.Filter) ([]string, error) {
+func (c *Calculator) Backtest(filter dto.Filter) (entity.BackTestResult, error) {
 	candles, err := c.tradingInfoProvider.HistoricCandles(filter.Ticker, filter.StartTime, filter.EndTime)
 	if err != nil {
-		return nil, fmt.Errorf("historic candles: %v", err)
+		return entity.BackTestResult{}, fmt.Errorf("historic candles: %v", err)
 	}
 
 	inCh := make(chan entity.Candle)
-	outCh := make(chan Event)
+	//outCh := make(chan Event)
 
-	strategy := NewVWAPStrategy(inCh, outCh)
+	//TODO: get from client
+	tinkoffTax := func(price float64) float64 { return price * 0.05 / 100 }
 
-	var wg sync.WaitGroup
+	backtest := NewBackTest(inCh, NewVWAPStrategy, tinkoffTax)
+
+	var (
+		wg     sync.WaitGroup
+		result entity.BackTestResult
+	)
 
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
 
-		strategy.Do()
+		result = backtest.Do()
 	}()
 
 	go func() {
@@ -61,50 +70,112 @@ func (c *Calculator) Backtest(filter dto.Filter) ([]string, error) {
 		close(inCh)
 	}()
 
-	go func() {
-		wg.Wait()
-
-		close(outCh)
-	}()
-
-	var result []string
-
-	for event := range outCh {
-		result = append(result, fmt.Sprintf("%s by price: %f", event.Typ, event.Price))
-
-		if event.Typ != Sell {
-			continue
-		}
-
-		result = append(result, fmt.Sprintf("PNL:  %f \n", strategy.pnl))
-		result = append(result, fmt.Sprintf("Period: %d", strategy.numbersPeriod))
-	}
-
-	result = append(result, fmt.Sprintf("Number dial: %d", strategy.numberDeal))
+	wg.Wait()
 
 	return result, nil
 }
 
+type BackTestStrategy struct {
+	strategy      TradingStrategy
+	pnl           float64
+	calculateTax  taxFn
+	numberDeal    int
+	strategyInCh  chan entity.Candle
+	strategyOutCh chan Event
+
+	inCh  chan entity.Candle
+	outCh chan Event
+}
+
+func NewBackTest(inCh chan entity.Candle, createStrategyFn createTradingStrategy, calculateTaxFn taxFn) BackTestStrategy {
+	strategyInCh := make(chan entity.Candle)
+	strategyOutCh := make(chan Event)
+
+	s := createStrategyFn(strategyInCh, strategyOutCh)
+
+	return BackTestStrategy{
+		strategy:      s,
+		calculateTax:  calculateTaxFn,
+		strategyInCh:  strategyInCh,
+		strategyOutCh: strategyOutCh,
+
+		inCh: inCh,
+	}
+}
+
+func (s *BackTestStrategy) Do() entity.BackTestResult {
+	var wg sync.WaitGroup
+
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+
+		s.strategy.Do()
+	}()
+
+	go func() {
+		wg.Wait()
+
+		close(s.strategyOutCh)
+	}()
+
+	go func() {
+		for candle := range s.inCh {
+			s.strategyInCh <- candle
+		}
+
+		close(s.strategyInCh)
+	}()
+
+	var (
+		dials       []entity.Dial
+		numberDials int
+		currentDial entity.Dial
+		pnl         float64
+	)
+
+	for event := range s.strategyOutCh {
+		numberDials++
+
+		if event.Typ == Buy {
+			currentDial = entity.Dial{
+				Buy: event.Price,
+			}
+
+			continue
+		}
+
+		currentDial.Sell = event.Price
+		currentDial.CalculatePNL()
+		pnl += currentDial.PNL
+
+		dials = append(dials, currentDial)
+	}
+
+	return entity.BackTestResult{
+		NumberDial: numberDials,
+		PNL:        pnl,
+		Dials:      dials,
+	}
+}
+
 type VWAPStrategy struct {
-	brokerTaxPercent       float64
 	bestPriceForThisPeriod float64
 	dealPrice              float64
 	numbersPeriod          int
-	numberDeal             int
 	candles                []entity.Candle
-	inCh                   chan entity.Candle
-	outCh                  chan Event
-	pnl                    float64
+
+	inCh  chan entity.Candle
+	outCh chan Event
 
 	positiveFlag     bool
 	startSellingFlag bool
 }
 
-func NewVWAPStrategy(inCh chan entity.Candle, outCh chan Event) VWAPStrategy {
-	return VWAPStrategy{
-		brokerTaxPercent: 0.05,
-		inCh:             inCh,
-		outCh:            outCh,
+func NewVWAPStrategy(inCh chan entity.Candle, outCh chan Event) TradingStrategy {
+	return &VWAPStrategy{
+		inCh:  inCh,
+		outCh: outCh,
 	}
 }
 
@@ -145,11 +216,8 @@ func (c *VWAPStrategy) Do() {
 }
 
 func (c *VWAPStrategy) generateSellEvent(candle entity.Candle) {
-	c.numberDeal++
 	c.positiveFlag = false
-	c.pnl += candle.Close - c.dealPrice
 	c.dealPrice = 0
-	c.calculateTax(candle.Close)
 	c.startSellingFlag = false
 
 	c.outCh <- Event{
@@ -166,8 +234,6 @@ func (c *VWAPStrategy) generateSellEvent(candle entity.Candle) {
 func (c *VWAPStrategy) generateBuyEvent(candle entity.Candle) {
 	c.positiveFlag = true
 	c.dealPrice = candle.Close
-	c.numberDeal++
-	c.calculateTax(candle.Close)
 
 	c.outCh <- Event{
 		Typ:       Buy,
@@ -192,8 +258,4 @@ func (c *VWAPStrategy) calculateVWAPMetric() float64 {
 
 	metricVWAP := financialVolume / float64(tradingVolume)
 	return metricVWAP
-}
-
-func (c *VWAPStrategy) calculateTax(price float64) {
-	c.pnl -= (price * c.brokerTaxPercent) / 100
 }
