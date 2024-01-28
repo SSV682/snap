@@ -1,6 +1,8 @@
 package v1
 
 import (
+	"worker/internal/dto"
+
 	routing "github.com/qiangxue/fasthttp-routing"
 )
 
@@ -9,16 +11,22 @@ const (
 )
 
 type InvestService interface {
-	HistoricCandles()
+	Backtest(filter dto.Filter) ([]string, error)
+}
+
+type Validator interface {
+	Struct(object any) error
 }
 
 type API struct {
 	investService InvestService
+	validator     Validator
 }
 
-func NewInvestHandler(srv InvestService) *API {
+func NewInvestHandler(srv InvestService, v Validator) *API {
 	return &API{
 		investService: srv,
+		validator:     v,
 	}
 }
 

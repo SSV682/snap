@@ -1,20 +1,40 @@
 package v1
 
-import routing "github.com/qiangxue/fasthttp-routing"
+import (
+	"encoding/json"
+
+	routing "github.com/qiangxue/fasthttp-routing"
+	"github.com/valyala/fasthttp"
+)
 
 const (
 	investURI  = "/invest"
 	candlesURI = "/candles"
 )
 
+const (
+	ContentTypeApplicationJson = "application/json"
+)
+
 func (a *API) registerInvestHandlers(group *routing.RouteGroup) {
 	investGroup := group.Group(investURI)
 
-	investGroup.Get(candlesURI, a.GetHistoricCandles)
+	investGroup.Post(candlesURI, a.Backtest)
 }
 
-func (a *API) GetHistoricCandles(_ *routing.Context) error {
-	a.investService.HistoricCandles()
+func (a *API) Backtest(ctx *routing.Context) error {
+	filter, err := newBacktestRequest(ctx.PostBody(), a.validator)
+	if err != nil {
+		return err
+	}
 
-	return nil
+	backtestResult, err := a.investService.Backtest(filter.ToDTO())
+	if err != nil {
+		return err
+	}
+
+	ctx.SetStatusCode(fasthttp.StatusOK)
+	ctx.SetContentType(ContentTypeApplicationJson)
+
+	return json.NewEncoder(ctx).Encode(backtestResult)
 }

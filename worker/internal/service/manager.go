@@ -14,8 +14,10 @@ const (
 )
 
 type Event struct {
-	Typ   EventType
-	Price float64
+	Typ       EventType
+	Price     float64
+	Period    int
+	BestPrice float64
 }
 
 type Manager struct {
@@ -44,10 +46,30 @@ func (m *Manager) Run() {
 }
 
 func (m *Manager) run(ctx context.Context) {
+	var (
+		fullDiff        float64
+		currentPurchase float64
+		//bestFullDiff    float64
+	)
 	for {
 		select {
 		case event := <-m.inputCh:
+			switch event.Typ {
+			case Buy:
+				currentPurchase = event.Price
+			case Sell:
+				if currentPurchase == 0 {
+					continue
+				}
+
+				fullDiff += event.Price - currentPurchase
+				currentPurchase = 0
+			}
+
 			fmt.Printf("%s by price: %f \n", event.Typ, event.Price)
+			if currentPurchase == 0 {
+				fmt.Printf("Current diff: %f, current period: %d \n", fullDiff, event.Period)
+			}
 		case <-ctx.Done():
 			return
 		}

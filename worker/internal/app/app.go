@@ -11,6 +11,7 @@ import (
 	"worker/internal/infrastructure/tinkoff"
 	"worker/internal/service"
 
+	validator "github.com/go-playground/validator/v10"
 	routing "github.com/qiangxue/fasthttp-routing"
 	"github.com/russianinvestments/invest-api-go-sdk/investgo"
 	log "github.com/sirupsen/logrus"
@@ -66,12 +67,12 @@ func NewApp(configPath string) *App {
 	manager := service.NewManager(signalCh)
 	runners = append(runners, manager)
 
-	log.Info("App created")
-
 	handlers.Register(
 		router,
-		v1.NewInvestHandler(stockService),
+		v1.NewInvestHandler(stockService, validator.New()),
 	)
+
+	log.Info("App created")
 
 	return &App{
 		cfg: &cfg,
