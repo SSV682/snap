@@ -76,15 +76,15 @@ func (c *Calculator) Backtest(filter dto.Filter) (entity.BackTestResult, error) 
 }
 
 type BackTestStrategy struct {
-	strategy      TradingStrategy
+	strategy TradingStrategy
+
 	pnl           float64
 	calculateTax  taxFn
 	numberDeal    int
 	strategyInCh  chan entity.Candle
 	strategyOutCh chan Event
 
-	inCh  chan entity.Candle
-	outCh chan Event
+	inCh chan entity.Candle
 }
 
 func NewBackTest(inCh chan entity.Candle, createStrategyFn createTradingStrategy, calculateTaxFn taxFn) BackTestStrategy {
