@@ -92,3 +92,23 @@ func (c *Client) HistoricCandles(ticker string, timeFrom, timeTo time.Time) ([]e
 func (c *Client) GetTaxFn() entity.TaxFn {
 	return func(price float64) float64 { return price * 0.05 / 100 }
 }
+
+func (c *Client) GetCurrencies() ([]entity.Instrument, error) {
+	resp, err := c.instruments.Currencies(investapi.InstrumentStatus_INSTRUMENT_STATUS_BASE)
+	if err != nil {
+		return nil, fmt.Errorf("get currencies: %v", err)
+	}
+
+	currencies := resp.GetInstruments()
+	result := make([]entity.Instrument, len(currencies))
+
+	for i := range currencies {
+		result[i] = entity.Instrument{
+			Name:   currencies[i].GetName(),
+			Figi:   currencies[i].GetFigi(),
+			Ticker: currencies[i].GetTicker(),
+		}
+	}
+
+	return result, nil
+}

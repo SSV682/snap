@@ -11,7 +11,7 @@ import (
 	"worker/internal/infrastructure/tinkoff"
 	"worker/internal/service"
 
-	validator "github.com/go-playground/validator/v10"
+	"github.com/go-playground/validator/v10"
 	routing "github.com/qiangxue/fasthttp-routing"
 	"github.com/russianinvestments/invest-api-go-sdk/investgo"
 	log "github.com/sirupsen/logrus"
@@ -69,6 +69,12 @@ func NewApp(configPath string) *App {
 		},
 	)
 
+	tradingService := service.NewTradingService(
+		&service.TradingConfig{
+			TradingInfoProvider: client,
+		},
+	)
+
 	var runners []RunAsService
 
 	manager := service.NewManager(signalCh)
@@ -76,7 +82,11 @@ func NewApp(configPath string) *App {
 
 	handlers.Register(
 		router,
-		v1.NewInvestHandler(backTestService, validator.New()),
+		v1.NewInvestHandler(v1.Config{
+			BackTestService: backTestService,
+			TradingService:  tradingService,
+			Validator:       validator.New(),
+		}),
 	)
 
 	log.Info("App created")

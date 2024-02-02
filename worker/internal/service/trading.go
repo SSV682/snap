@@ -7,6 +7,7 @@ import (
 
 type TradingInfoProvider interface {
 	HistoricCandles(ticker string, timeFrom, timeTo time.Time) ([]entity.Candle, error)
+	GetCurrencies() ([]entity.Instrument, error)
 }
 
 type BrokerProvider interface {
@@ -17,7 +18,7 @@ type TradingStrategy interface {
 	Do()
 }
 
-type Config struct {
+type TradingConfig struct {
 	TradingInfoProvider TradingInfoProvider
 	SignalCh            chan Event
 }
@@ -27,9 +28,13 @@ type TradingService struct {
 	signalCh            chan Event
 }
 
-func NewTradingService(cfg *Config) *TradingService {
+func NewTradingService(cfg *TradingConfig) *TradingService {
 	return &TradingService{
 		tradingInfoProvider: cfg.TradingInfoProvider,
 		signalCh:            cfg.SignalCh,
 	}
+}
+
+func (s *TradingService) Currencies() ([]entity.Instrument, error) {
+	return s.tradingInfoProvider.GetCurrencies()
 }

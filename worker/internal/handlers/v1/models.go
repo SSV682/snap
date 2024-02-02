@@ -53,3 +53,29 @@ func BackTestResponseFromEntity(result entity.BackTestResult) BackTestResponse {
 		Dials:      dials,
 	}
 }
+
+type CurrenciesResponse struct {
+	Data []Instrument `json:"data"`
+}
+
+type Instrument struct {
+	Name   string `json:"name"`
+	Figi   string `json:"figi"`
+	Ticker string `json:"ticker"`
+}
+
+func NewCurrenciesResponseFromEntity(instruments []entity.Instrument) CurrenciesResponse {
+	data := make([]Instrument, len(instruments))
+
+	for i := range instruments {
+		data[i] = Instrument{
+			Name:   instruments[i].Name,
+			Figi:   instruments[i].Figi,
+			Ticker: instruments[i].Ticker,
+		}
+	}
+
+	return CurrenciesResponse{
+		Data: data,
+	}
+}

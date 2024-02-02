@@ -31,3 +31,9 @@ type Dial struct {
 func (d *Dial) CalculatePNL() {
 	d.PNL = d.Sell - d.Buy
 }
+
+type Instrument struct {
+	Name   string
+	Figi   string
+	Ticker string
+}

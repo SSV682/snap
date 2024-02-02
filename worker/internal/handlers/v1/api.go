@@ -15,25 +15,37 @@ type BackTestService interface {
 	BackTest(filter dto.Filter) (entity.BackTestResult, error)
 }
 
+type TradingService interface {
+	Currencies() ([]entity.Instrument, error)
+}
+
 type Validator interface {
 	Struct(object any) error
 }
 
 type API struct {
 	backTestService BackTestService
-
-	validator Validator
+	tradingService  TradingService
+	validator       Validator
 }
 
-func NewInvestHandler(srv BackTestService, v Validator) *API {
+type Config struct {
+	BackTestService BackTestService
+	TradingService  TradingService
+	Validator       Validator
+}
+
+func NewInvestHandler(cfg Config) *API {
 	return &API{
-		backTestService: srv,
-		validator:       v,
+		backTestService: cfg.BackTestService,
+		tradingService:  cfg.TradingService,
+		validator:       cfg.Validator,
 	}
 }
 
 func (a *API) RegisterHandlers(group *routing.RouteGroup) {
 	v1Group := group.Group(versionAPI)
 
-	a.registerInvestHandlers(v1Group)
+	a.registerBackTestHandlers(v1Group)
+	a.registerInfoHandlers(v1Group)
 }

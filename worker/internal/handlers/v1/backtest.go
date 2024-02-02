@@ -16,9 +16,7 @@ const (
 	ContentTypeApplicationJson = "application/json"
 )
 
-func (a *API) registerInvestHandlers(group *routing.RouteGroup) {
-	//investGroup := group.Group(backTestURI)
-
+func (a *API) registerBackTestHandlers(group *routing.RouteGroup) {
 	group.Post(backTestURI, a.BackTest)
 }
 
