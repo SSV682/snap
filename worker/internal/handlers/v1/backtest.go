@@ -8,8 +8,8 @@ import (
 )
 
 const (
-	investURI  = "/invest"
-	candlesURI = "/candles"
+	backTestURI = "/backtest"
+	candlesURI  = "/candles"
 )
 
 const (
@@ -17,18 +17,18 @@ const (
 )
 
 func (a *API) registerInvestHandlers(group *routing.RouteGroup) {
-	investGroup := group.Group(investURI)
+	//investGroup := group.Group(backTestURI)
 
-	investGroup.Post(candlesURI, a.Backtest)
+	group.Post(backTestURI, a.BackTest)
 }
 
-func (a *API) Backtest(ctx *routing.Context) error {
-	filter, err := newBacktestRequest(ctx.PostBody(), a.validator)
+func (a *API) BackTest(ctx *routing.Context) error {
+	filter, err := newBackTestRequest(ctx.PostBody(), a.validator)
 	if err != nil {
 		return err
 	}
 
-	backtestResult, err := a.investService.Backtest(filter.ToDTO())
+	result, err := a.backTestService.BackTest(filter.ToDTO())
 	if err != nil {
 		return err
 	}
@@ -36,5 +36,5 @@ func (a *API) Backtest(ctx *routing.Context) error {
 	ctx.SetStatusCode(fasthttp.StatusOK)
 	ctx.SetContentType(ContentTypeApplicationJson)
 
-	return json.NewEncoder(ctx).Encode(backtestResult)
+	return json.NewEncoder(ctx).Encode(BackTestResponseFromEntity(result))
 }

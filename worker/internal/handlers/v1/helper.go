@@ -47,7 +47,7 @@ func validate(object any, validatorIns Validator) error {
 	return nil
 }
 
-func newBacktestRequest(data []byte, validatorIns Validator) (settings *backtestRequest, err error) {
+func newBackTestRequest(data []byte, validatorIns Validator) (settings *backTestRequest, err error) {
 	if err = json.Unmarshal(data, &settings); err != nil {
 		return nil, err
 	}

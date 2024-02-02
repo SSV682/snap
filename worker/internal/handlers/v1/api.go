@@ -11,8 +11,8 @@ const (
 	versionAPI = "/v1"
 )
 
-type InvestService interface {
-	Backtest(filter dto.Filter) (entity.BackTestResult, error)
+type BackTestService interface {
+	BackTest(filter dto.Filter) (entity.BackTestResult, error)
 }
 
 type Validator interface {
@@ -20,14 +20,15 @@ type Validator interface {
 }
 
 type API struct {
-	investService InvestService
-	validator     Validator
+	backTestService BackTestService
+
+	validator Validator
 }
 
-func NewInvestHandler(srv InvestService, v Validator) *API {
+func NewInvestHandler(srv BackTestService, v Validator) *API {
 	return &API{
-		investService: srv,
-		validator:     v,
+		backTestService: srv,
+		validator:       v,
 	}
 }
 

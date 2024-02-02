@@ -55,10 +55,16 @@ func NewApp(configPath string) *App {
 
 	signalCh := make(chan service.Event)
 
-	stockService := service.NewCalculator(
-		&service.Config{
+	//tradingService := service.NewTradingService(
+	//	&service.Config{
+	//		TradingInfoProvider: client,
+	//		SignalCh:            signalCh,
+	//	},
+	//)
+
+	backTestService := service.NewBackTestService(
+		&service.BackTestConfig{
 			TradingInfoProvider: client,
-			SignalCh:            signalCh,
 		},
 	)
 
@@ -69,7 +75,7 @@ func NewApp(configPath string) *App {
 
 	handlers.Register(
 		router,
-		v1.NewInvestHandler(stockService, validator.New()),
+		v1.NewInvestHandler(backTestService, validator.New()),
 	)
 
 	log.Info("App created")
