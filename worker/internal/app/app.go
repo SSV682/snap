@@ -65,6 +65,7 @@ func NewApp(configPath string) *App {
 	backTestService := service.NewBackTestService(
 		&service.BackTestConfig{
 			TradingInfoProvider: client,
+			BrokerProvider:      client,
 		},
 	)
 

@@ -8,17 +8,19 @@ type VWAPStrategy struct {
 	numbersPeriod          int
 	candles                []entity.Candle
 
-	inCh  chan entity.Candle
-	outCh chan Event
+	inCh      chan entity.Candle
+	outCh     chan Event
+	dealTaxFn entity.TaxFn
 
 	positiveFlag     bool
 	startSellingFlag bool
 }
 
-func NewVWAPStrategy(inCh chan entity.Candle, outCh chan Event) TradingStrategy {
+func NewVWAPStrategy(inCh chan entity.Candle, outCh chan Event, dealTax entity.TaxFn) TradingStrategy {
 	return &VWAPStrategy{
-		inCh:  inCh,
-		outCh: outCh,
+		inCh:      inCh,
+		outCh:     outCh,
+		dealTaxFn: dealTax,
 	}
 }
 
@@ -35,6 +37,10 @@ func (c *VWAPStrategy) Do() {
 		c.candles = append(c.candles[1:], candle)
 
 		metricVWAP := c.calculateVWAPMetric()
+
+		if c.numbersPeriod < 2 {
+			continue
+		}
 
 		if c.positiveFlag && c.bestPriceForThisPeriod < candle.Close {
 			c.bestPriceForThisPeriod = candle.Close
@@ -65,7 +71,7 @@ func (c *VWAPStrategy) generateSellEvent(candle entity.Candle) {
 
 	c.outCh <- Event{
 		Typ:       Sell,
-		Price:     candle.Close,
+		Price:     candle.Close - c.dealTaxFn(candle.Close),
 		Period:    c.numbersPeriod,
 		BestPrice: c.bestPriceForThisPeriod,
 	}
@@ -76,11 +82,13 @@ func (c *VWAPStrategy) generateSellEvent(candle entity.Candle) {
 
 func (c *VWAPStrategy) generateBuyEvent(candle entity.Candle) {
 	c.positiveFlag = true
-	c.dealPrice = candle.Close
+
+	finalPrice := candle.Close + c.dealTaxFn(candle.Close)
+	c.dealPrice = finalPrice
 
 	c.outCh <- Event{
 		Typ:       Buy,
-		Price:     candle.Close,
+		Price:     finalPrice,
 		Period:    c.numbersPeriod,
 		BestPrice: c.bestPriceForThisPeriod,
 	}

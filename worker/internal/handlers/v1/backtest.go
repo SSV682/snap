@@ -9,7 +9,7 @@ import (
 
 const (
 	backTestURI = "/backtest"
-	candlesURI  = "/candles"
+	//candlesURI  = "/candles"
 )
 
 const (
