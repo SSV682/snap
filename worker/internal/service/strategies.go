@@ -36,6 +36,10 @@ func (c *VWAPStrategy) Do() {
 
 		metricVWAP := c.calculateVWAPMetric()
 
+		if c.numbersPeriod < 2 {
+			continue
+		}
+
 		if c.positiveFlag && c.bestPriceForThisPeriod < candle.Close {
 			c.bestPriceForThisPeriod = candle.Close
 		}

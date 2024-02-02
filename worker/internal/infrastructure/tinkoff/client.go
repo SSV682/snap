@@ -88,3 +88,7 @@ func (c *Client) HistoricCandles(ticker string, timeFrom, timeTo time.Time) ([]e
 
 	return result, nil
 }
+
+func (c *Client) GetTaxFn() entity.TaxFn {
+	return func(price float64) float64 { return price * 0.05 / 100 }
+}

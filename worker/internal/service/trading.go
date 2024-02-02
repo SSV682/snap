@@ -9,6 +9,10 @@ type TradingInfoProvider interface {
 	HistoricCandles(ticker string, timeFrom, timeTo time.Time) ([]entity.Candle, error)
 }
 
+type BrokerProvider interface {
+	GetTaxFn() entity.TaxFn
+}
+
 type TradingStrategy interface {
 	Do()
 }

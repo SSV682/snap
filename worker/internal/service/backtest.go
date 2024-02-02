@@ -8,36 +8,36 @@ import (
 	"worker/internal/entity"
 )
 
-type taxFn func(price float64) float64
 type createTradingStrategy func(inCh chan entity.Candle, outCh chan Event) TradingStrategy
 
 type BackTestConfig struct {
 	TradingInfoProvider TradingInfoProvider
+	BrokerProvider      BrokerProvider
 }
 
 type BackTestService struct {
 	tradingInfoProvider TradingInfoProvider
+	brokerProvider      BrokerProvider
 }
 
-func NewBackTestService(cfg *BackTestConfig) *TradingService {
-	return &TradingService{
+func NewBackTestService(cfg *BackTestConfig) *BackTestService {
+	return &BackTestService{
 		tradingInfoProvider: cfg.TradingInfoProvider,
+		brokerProvider:      cfg.BrokerProvider,
 	}
 }
 
-func (c *TradingService) BackTest(filter dto.Filter) (entity.BackTestResult, error) {
-	candles, err := c.tradingInfoProvider.HistoricCandles(filter.Ticker, filter.StartTime, filter.EndTime)
+func (s *BackTestService) BackTest(filter dto.Filter) (entity.BackTestResult, error) {
+	candles, err := s.tradingInfoProvider.HistoricCandles(filter.Ticker, filter.StartTime, filter.EndTime)
 	if err != nil {
 		return entity.BackTestResult{}, fmt.Errorf("historic candles: %v", err)
 	}
 
 	inCh := make(chan entity.Candle)
-	//outCh := make(chan Event)
 
 	//TODO: get from client
-	tinkoffTax := func(price float64) float64 { return price * 0.05 / 100 }
 
-	backtest := NewBackTest(inCh, NewVWAPStrategy, tinkoffTax)
+	backTest := NewBackTest(inCh, NewVWAPStrategy, s.brokerProvider.GetTaxFn())
 
 	var (
 		wg     sync.WaitGroup
@@ -48,7 +48,7 @@ func (c *TradingService) BackTest(filter dto.Filter) (entity.BackTestResult, err
 	go func() {
 		defer wg.Done()
 
-		result = backtest.Do()
+		result = backTest.Do()
 	}()
 
 	go func() {
@@ -68,7 +68,7 @@ type BackTest struct {
 	strategy TradingStrategy
 
 	pnl           float64
-	calculateTax  taxFn
+	calculateTax  entity.TaxFn
 	numberDeal    int
 	strategyInCh  chan entity.Candle
 	strategyOutCh chan Event
@@ -76,7 +76,7 @@ type BackTest struct {
 	inCh chan entity.Candle
 }
 
-func NewBackTest(inCh chan entity.Candle, createStrategyFn createTradingStrategy, calculateTaxFn taxFn) BackTest {
+func NewBackTest(inCh chan entity.Candle, createStrategyFn createTradingStrategy, calculateTaxFn entity.TaxFn) BackTest {
 	strategyInCh := make(chan entity.Candle)
 	strategyOutCh := make(chan Event)
 
@@ -135,6 +135,7 @@ func (s *BackTest) Do() entity.BackTestResult {
 		}
 
 		currentDial.Sell = event.Price
+		currentDial.Period = event.Period
 		currentDial.CalculatePNL()
 		pnl += currentDial.PNL
 
