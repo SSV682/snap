@@ -112,3 +112,43 @@ func (c *Client) GetCurrencies() ([]entity.Instrument, error) {
 
 	return result, nil
 }
+
+func (c *Client) GetStocks() ([]entity.Instrument, error) {
+	resp, err := c.instruments.Shares(investapi.InstrumentStatus_INSTRUMENT_STATUS_BASE)
+	if err != nil {
+		return nil, fmt.Errorf("get stocks: %v", err)
+	}
+
+	bonds := resp.GetInstruments()
+	result := make([]entity.Instrument, len(bonds))
+
+	for i := range bonds {
+		result[i] = entity.Instrument{
+			Name:   bonds[i].GetName(),
+			Figi:   bonds[i].GetFigi(),
+			Ticker: bonds[i].GetTicker(),
+		}
+	}
+
+	return result, nil
+}
+
+func (c *Client) GetFutures() ([]entity.Instrument, error) {
+	resp, err := c.instruments.Futures(investapi.InstrumentStatus_INSTRUMENT_STATUS_BASE)
+	if err != nil {
+		return nil, fmt.Errorf("get futures: %v", err)
+	}
+
+	instruments := resp.GetInstruments()
+	result := make([]entity.Instrument, len(instruments))
+
+	for i := range instruments {
+		result[i] = entity.Instrument{
+			Name:   instruments[i].GetName(),
+			Figi:   instruments[i].GetFigi(),
+			Ticker: instruments[i].GetTicker(),
+		}
+	}
+
+	return result, nil
+}

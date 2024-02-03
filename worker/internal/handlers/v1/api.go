@@ -17,6 +17,8 @@ type BackTestService interface {
 
 type TradingService interface {
 	Currencies() ([]entity.Instrument, error)
+	Stocks() ([]entity.Instrument, error)
+	Futures() ([]entity.Instrument, error)
 }
 
 type Validator interface {

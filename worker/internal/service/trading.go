@@ -8,6 +8,8 @@ import (
 type TradingInfoProvider interface {
 	HistoricCandles(ticker string, timeFrom, timeTo time.Time) ([]entity.Candle, error)
 	GetCurrencies() ([]entity.Instrument, error)
+	GetStocks() ([]entity.Instrument, error)
+	GetFutures() ([]entity.Instrument, error)
 }
 
 type BrokerProvider interface {
@@ -37,4 +39,12 @@ func NewTradingService(cfg *TradingConfig) *TradingService {
 
 func (s *TradingService) Currencies() ([]entity.Instrument, error) {
 	return s.tradingInfoProvider.GetCurrencies()
+}
+
+func (s *TradingService) Stocks() ([]entity.Instrument, error) {
+	return s.tradingInfoProvider.GetStocks()
+}
+
+func (s *TradingService) Futures() ([]entity.Instrument, error) {
+	return s.tradingInfoProvider.GetFutures()
 }
