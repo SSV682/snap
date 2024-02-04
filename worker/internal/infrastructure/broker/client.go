@@ -1,4 +1,4 @@
-package tinkoff
+package broker
 
 import (
 	"context"
@@ -89,6 +89,7 @@ func (c *Client) HistoricCandles(ticker string, timeFrom, timeTo time.Time) ([]e
 	return result, nil
 }
 
+// TODO:
 func (c *Client) GetTaxFn() entity.TaxFn {
 	return func(price float64) float64 { return price * 0.05 / 100 }
 }
@@ -105,7 +106,7 @@ func (c *Client) GetCurrencies() ([]entity.Instrument, error) {
 	for i := range currencies {
 		result[i] = entity.Instrument{
 			Name:   currencies[i].GetName(),
-			Figi:   currencies[i].GetFigi(),
+			FIGI:   currencies[i].GetFigi(),
 			Ticker: currencies[i].GetTicker(),
 		}
 	}
@@ -125,7 +126,7 @@ func (c *Client) GetStocks() ([]entity.Instrument, error) {
 	for i := range bonds {
 		result[i] = entity.Instrument{
 			Name:   bonds[i].GetName(),
-			Figi:   bonds[i].GetFigi(),
+			FIGI:   bonds[i].GetFigi(),
 			Ticker: bonds[i].GetTicker(),
 		}
 	}
@@ -145,10 +146,33 @@ func (c *Client) GetFutures() ([]entity.Instrument, error) {
 	for i := range instruments {
 		result[i] = entity.Instrument{
 			Name:   instruments[i].GetName(),
-			Figi:   instruments[i].GetFigi(),
+			FIGI:   instruments[i].GetFigi(),
 			Ticker: instruments[i].GetTicker(),
 		}
 	}
 
 	return result, nil
+}
+
+func (c *Client) LastCandle(ticker string) (entity.Candle, error) {
+	instrument, err := c.getInstrument(ticker)
+	if err != nil {
+		return entity.Candle{}, fmt.Errorf("get instrument: %v", err)
+	}
+
+	response, err := c.marketData.GetCandles(instrument.Uid, investapi.CandleInterval_CANDLE_INTERVAL_1_MIN, time.Now().Add(-1*time.Minute), time.Now())
+	if err != nil {
+		return entity.Candle{}, fmt.Errorf("get historic candles: %v", err)
+	}
+
+	lastCandle := response.GetCandles()[len(response.GetCandles())-1]
+
+	return entity.Candle{
+		Open:   lastCandle.GetOpen().ToFloat(),
+		High:   lastCandle.GetHigh().ToFloat(),
+		Low:    lastCandle.GetLow().ToFloat(),
+		Close:  lastCandle.GetClose().ToFloat(),
+		Volume: lastCandle.Volume,
+		Time:   lastCandle.Time.AsTime(),
+	}, nil
 }

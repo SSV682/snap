@@ -6,10 +6,14 @@ import (
 	"os/signal"
 	"syscall"
 	"worker/internal/config"
+	"worker/internal/entity"
 	"worker/internal/handlers"
 	v1 "worker/internal/handlers/v1"
-	"worker/internal/infrastructure/tinkoff"
+	"worker/internal/infrastructure/broker"
+	"worker/internal/infrastructure/external"
 	"worker/internal/service"
+	"worker/internal/service/backtest"
+	"worker/internal/service/manager"
 
 	"github.com/go-playground/validator/v10"
 	routing "github.com/qiangxue/fasthttp-routing"
@@ -36,7 +40,7 @@ func NewApp(configPath string) *App {
 
 	router := routing.New()
 
-	client, err := tinkoff.NewClient(
+	client, err := broker.NewClient(
 		context.Background(),
 		investgo.Config{
 			EndPoint:                      cfg.InvestConfig.EndPoint,
@@ -53,17 +57,10 @@ func NewApp(configPath string) *App {
 		return nil
 	}
 
-	signalCh := make(chan service.Event)
+	signalCh := make(chan entity.Event, 1)
 
-	//tradingService := service.NewTradingService(
-	//	&service.Config{
-	//		TradingInfoProvider: client,
-	//		SignalCh:            signalCh,
-	//	},
-	//)
-
-	backTestService := service.NewBackTestService(
-		&service.BackTestConfig{
+	backTestService := backtest.NewBackTestService(
+		&backtest.Config{
 			TradingInfoProvider: client,
 			BrokerProvider:      client,
 		},
@@ -77,8 +74,8 @@ func NewApp(configPath string) *App {
 
 	var runners []RunAsService
 
-	manager := service.NewManager(signalCh)
-	runners = append(runners, manager)
+	runners = append(runners, external.NewExternalClient(external.Config{InCh: signalCh}))
+	runners = append(runners, manager.NewManager(manager.Config{ExternalCh: signalCh}))
 
 	handlers.Register(
 		router,

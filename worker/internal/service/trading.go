@@ -7,6 +7,7 @@ import (
 
 type TradingInfoProvider interface {
 	HistoricCandles(ticker string, timeFrom, timeTo time.Time) ([]entity.Candle, error)
+	LastCandle(ticker string) (entity.Candle, error)
 	GetCurrencies() ([]entity.Instrument, error)
 	GetStocks() ([]entity.Instrument, error)
 	GetFutures() ([]entity.Instrument, error)
@@ -16,18 +17,14 @@ type BrokerProvider interface {
 	GetTaxFn() entity.TaxFn
 }
 
-type TradingStrategy interface {
-	Do()
-}
-
 type TradingConfig struct {
 	TradingInfoProvider TradingInfoProvider
-	SignalCh            chan Event
+	SignalCh            chan entity.Event
 }
 
 type TradingService struct {
 	tradingInfoProvider TradingInfoProvider
-	signalCh            chan Event
+	signalCh            chan entity.Event
 }
 
 func NewTradingService(cfg *TradingConfig) *TradingService {

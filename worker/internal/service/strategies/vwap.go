@@ -1,6 +1,12 @@
-package service
+package strategies
 
-import "worker/internal/entity"
+import (
+	"worker/internal/entity"
+)
+
+const (
+	VWAP = "VWAP"
+)
 
 type VWAPStrategy struct {
 	bestPriceForThisPeriod float64
@@ -9,19 +15,27 @@ type VWAPStrategy struct {
 	candles                []entity.Candle
 
 	inCh      chan entity.Candle
-	outCh     chan Event
+	outCh     chan entity.Event
 	dealTaxFn entity.TaxFn
 
 	positiveFlag     bool
 	startSellingFlag bool
 }
 
-func NewVWAPStrategy(inCh chan entity.Candle, outCh chan Event, dealTax entity.TaxFn) TradingStrategy {
+func NewVWAPStrategy(inCh chan entity.Candle, outCh chan entity.Event, dealTax entity.TaxFn) *VWAPStrategy {
 	return &VWAPStrategy{
 		inCh:      inCh,
 		outCh:     outCh,
 		dealTaxFn: dealTax,
 	}
+}
+
+func (c *VWAPStrategy) InChannel() chan entity.Candle {
+	return c.inCh
+}
+
+func (c *VWAPStrategy) OutChannel() chan entity.Event {
+	return c.outCh
 }
 
 func (c *VWAPStrategy) Do() {
@@ -69,8 +83,8 @@ func (c *VWAPStrategy) generateSellEvent(candle entity.Candle) {
 	c.dealPrice = 0
 	c.startSellingFlag = false
 
-	c.outCh <- Event{
-		Typ:       Sell,
+	c.outCh <- entity.Event{
+		Typ:       entity.Sell,
 		Price:     candle.Close - c.dealTaxFn(candle.Close),
 		Period:    c.numbersPeriod,
 		BestPrice: c.bestPriceForThisPeriod,
@@ -86,8 +100,8 @@ func (c *VWAPStrategy) generateBuyEvent(candle entity.Candle) {
 	finalPrice := candle.Close + c.dealTaxFn(candle.Close)
 	c.dealPrice = finalPrice
 
-	c.outCh <- Event{
-		Typ:       Buy,
+	c.outCh <- entity.Event{
+		Typ:       entity.Buy,
 		Price:     finalPrice,
 		Period:    c.numbersPeriod,
 		BestPrice: c.bestPriceForThisPeriod,
