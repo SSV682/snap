@@ -70,7 +70,7 @@ func NewCurrenciesResponseFromEntity(instruments []entity.Instrument) Currencies
 	for i := range instruments {
 		data[i] = Instrument{
 			Name:   instruments[i].Name,
-			Figi:   instruments[i].Figi,
+			Figi:   instruments[i].FIGI,
 			Ticker: instruments[i].Ticker,
 		}
 	}

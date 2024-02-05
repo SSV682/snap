@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"worker/internal/entity"
-	"worker/internal/service/strategies"
 )
 
 type StrategySettingsRepository interface {
@@ -49,30 +48,30 @@ func NewManager(cfg Config) *Manager {
 	}
 }
 
-func (m *Manager) Run() {
-	ctx, cancel := context.WithCancel(context.Background())
-	m.cancelFn = cancel
-
-	vwapStrategy := strategies.NewVWAPStrategy(m.inCh, m.outCh, m.brokerProvider.GetTaxFn())
-
-	//run strategy
-	m.wg.Add(1)
-	go func() {
-		defer m.wg.Done()
-
-		vwapStrategy.Do()
-	}()
-
-	//run manager
-	m.wg.Add(1)
-	go func() {
-		defer m.wg.Done()
-
-		m.run(ctx)
-	}()
-
-	m.wg.Wait()
-}
+//func (m *Manager) Run() {
+//	ctx, cancel := context.WithCancel(context.Background())
+//	m.cancelFn = cancel
+//
+//	vwapStrategy := strategies.NewVWAPStrategy(m.inCh, m.outCh, m.brokerProvider.GetTaxFn())
+//
+//	//run strategy
+//	m.wg.Add(1)
+//	go func() {
+//		defer m.wg.Done()
+//
+//		vwapStrategy.Do()
+//	}()
+//
+//	//run manager
+//	m.wg.Add(1)
+//	go func() {
+//		defer m.wg.Done()
+//
+//		m.run(ctx)
+//	}()
+//
+//	m.wg.Wait()
+//}
 
 func (m *Manager) loadStrategySettings() error {
 	settings, err := m.settingsRepo.GetStrategySettings()

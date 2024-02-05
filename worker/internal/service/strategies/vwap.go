@@ -1,81 +1,107 @@
 package strategies
 
 import (
+	"context"
+	"sync"
 	"worker/internal/entity"
 )
 
-const (
-	VWAP = "VWAP"
-)
-
 type VWAPStrategy struct {
+	inCh                       chan entity.Candle
+	outCh                      chan entity.Event
+	thresholdTakeProfitPercent float64
+	thresholdStopLostPercent   float64
+
+	cancelFn context.CancelFunc
+	wg       sync.WaitGroup
+
 	bestPriceForThisPeriod float64
 	dealPrice              float64
 	numbersPeriod          int
 	candles                []entity.Candle
-
-	inCh      chan entity.Candle
-	outCh     chan entity.Event
-	dealTaxFn entity.TaxFn
-
-	positiveFlag     bool
-	startSellingFlag bool
+	positiveFlag           bool
+	startSellingFlag       bool
 }
 
-func NewVWAPStrategy(inCh chan entity.Candle, outCh chan entity.Event, dealTax entity.TaxFn) *VWAPStrategy {
+type VWAPStrategyConfig struct {
+	InCh                       chan entity.Candle
+	OutCh                      chan entity.Event
+	ThresholdTakeProfitPercent float64
+	ThresholdStopLostPercent   float64
+}
+
+func NewVWAPStrategy(cfg *VWAPStrategyConfig) *VWAPStrategy {
 	return &VWAPStrategy{
-		inCh:      inCh,
-		outCh:     outCh,
-		dealTaxFn: dealTax,
+		//baseStrategy: baseStrategy{
+		inCh:                       cfg.InCh,
+		outCh:                      cfg.OutCh,
+		thresholdTakeProfitPercent: cfg.ThresholdTakeProfitPercent,
+		thresholdStopLostPercent:   cfg.ThresholdStopLostPercent,
+		//},
+	}
+}
+func (c *VWAPStrategy) Run() {
+	ctx, cancel := context.WithCancel(context.Background())
+	c.cancelFn = cancel
+
+	c.wg.Add(1)
+	go func() {
+		defer c.wg.Done()
+
+		c.run(ctx)
+	}()
+}
+
+func (c *VWAPStrategy) run(ctx context.Context) {
+	for {
+		select {
+		case <-ctx.Done():
+			close(c.outCh)
+
+			return
+		case candle := <-c.inCh:
+			c.numbersPeriod++
+			if len(c.candles) < 5 {
+				c.candles = append(c.candles, candle)
+
+				continue
+			}
+
+			c.candles = append(c.candles[1:], candle)
+
+			metricVWAP := c.calculateVWAPMetric()
+
+			if c.numbersPeriod < 2 {
+				continue
+			}
+
+			if c.positiveFlag && c.bestPriceForThisPeriod < candle.Close {
+				c.bestPriceForThisPeriod = candle.Close
+			}
+
+			if !c.startSellingFlag && metricVWAP <= candle.Close && c.positiveFlag && c.dealPrice != 0 {
+				c.startSellingFlag = true
+			}
+
+			if c.startSellingFlag && c.dealPrice != 0 && candle.Close < ((c.bestPriceForThisPeriod-c.dealPrice)/2)+c.dealPrice {
+				c.generateSellEvent(candle)
+
+				continue
+			}
+
+			if metricVWAP > candle.Close && !c.positiveFlag {
+				c.generateBuyEvent(candle)
+
+				continue
+			}
+		}
 	}
 }
 
-func (c *VWAPStrategy) InChannel() chan entity.Candle {
-	return c.inCh
-}
+func (c *VWAPStrategy) Close() {
+	c.cancelFn()
 
-func (c *VWAPStrategy) OutChannel() chan entity.Event {
-	return c.outCh
-}
-
-func (c *VWAPStrategy) Do() {
-	for candle := range c.inCh {
-
-		c.numbersPeriod++
-		if len(c.candles) < 5 {
-			c.candles = append(c.candles, candle)
-
-			continue
-		}
-
-		c.candles = append(c.candles[1:], candle)
-
-		metricVWAP := c.calculateVWAPMetric()
-
-		if c.numbersPeriod < 2 {
-			continue
-		}
-
-		if c.positiveFlag && c.bestPriceForThisPeriod < candle.Close {
-			c.bestPriceForThisPeriod = candle.Close
-		}
-
-		if !c.startSellingFlag && metricVWAP <= candle.Close && c.positiveFlag && c.dealPrice != 0 {
-			c.startSellingFlag = true
-		}
-
-		if c.startSellingFlag && c.dealPrice != 0 && candle.Close < ((c.bestPriceForThisPeriod-c.dealPrice)/2)+c.dealPrice {
-			c.generateSellEvent(candle)
-
-			continue
-		}
-
-		if metricVWAP > candle.Close && !c.positiveFlag {
-			c.generateBuyEvent(candle)
-
-			continue
-		}
-	}
+	c.wg.Wait()
 }
 
 func (c *VWAPStrategy) generateSellEvent(candle entity.Candle) {
@@ -85,7 +111,7 @@ func (c *VWAPStrategy) generateSellEvent(candle entity.Candle) {
 
 	c.outCh <- entity.Event{
 		Typ:       entity.Sell,
-		Price:     candle.Close - c.dealTaxFn(candle.Close),
+		Price:     candle.Close,
 		Period:    c.numbersPeriod,
 		BestPrice: c.bestPriceForThisPeriod,
 	}
@@ -97,7 +123,7 @@ func (c *VWAPStrategy) generateSellEvent(candle entity.Candle) {
 func (c *VWAPStrategy) generateBuyEvent(candle entity.Candle) {
 	c.positiveFlag = true
 
-	finalPrice := candle.Close + c.dealTaxFn(candle.Close)
+	finalPrice := candle.Close
 	c.dealPrice = finalPrice
 
 	c.outCh <- entity.Event{

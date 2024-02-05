@@ -2,20 +2,17 @@ package backtest
 
 import (
 	"fmt"
-	"sync"
-	"worker/internal/service/strategies"
-
 	"worker/internal/dto"
 	"worker/internal/entity"
 	"worker/internal/service"
+	"worker/internal/service/strategies"
 
 	"github.com/pkg/errors"
 )
 
 type TradingStrategy interface {
-	Do()
-	InChannel() chan entity.Candle
-	OutChannel() chan entity.Event
+	Run()
+	Close()
 }
 
 type Config struct {
@@ -27,14 +24,28 @@ type Service struct {
 	tradingInfoProvider service.TradingInfoProvider
 	brokerProvider      service.BrokerProvider
 	strategies          map[string]TradingStrategy
+	strategyInCh        chan entity.Candle
+	strategyOutCh       chan entity.Event
 }
 
 func NewBackTestService(cfg *Config) *Service {
+	strategyInCh := make(chan entity.Candle, 1)
+	strategyOutCh := make(chan entity.Event, 1)
+
 	return &Service{
 		tradingInfoProvider: cfg.TradingInfoProvider,
 		brokerProvider:      cfg.BrokerProvider,
+		strategyInCh:        strategyInCh,
+		strategyOutCh:       strategyOutCh,
 		strategies: map[string]TradingStrategy{
-			strategies.VWAP: strategies.NewVWAPStrategy(make(chan entity.Candle, 1), make(chan entity.Event, 1), cfg.BrokerProvider.GetTaxFn()),
+			strategies.VWAP: strategies.NewVWAPStrategy(
+				&strategies.VWAPStrategyConfig{
+					InCh:                       strategyInCh,
+					OutCh:                      strategyOutCh,
+					ThresholdTakeProfitPercent: 0,
+					ThresholdStopLostPercent:   0,
+				},
+			),
 		},
 	}
 }
@@ -50,35 +61,15 @@ func (s *Service) BackTest(filter dto.Filter) (entity.BackTestResult, error) {
 		return entity.BackTestResult{}, fmt.Errorf("historic candles: %v", err)
 	}
 
-	inCh := make(chan entity.Candle)
-
-	backTest := NewBackTest(backTestConfig{
-		inCh:           inCh,
+	backTest := NewBackTest(&backTestConfig{
+		candles:        candles,
 		strategy:       usedStrategy,
 		calculateTaxFn: s.brokerProvider.GetTaxFn(),
+		strategyInCh:   s.strategyInCh,
+		strategyOutCh:  s.strategyOutCh,
 	})
 
-	var (
-		wg     sync.WaitGroup
-		result entity.BackTestResult
-	)
-
-	wg.Add(1)
-	go func() {
-		defer wg.Done()
-
-		result = backTest.Do()
-	}()
-
-	go func() {
-		for _, candle := range candles {
-			inCh <- candle
-		}
-
-		close(inCh)
-	}()
-
-	wg.Wait()
+	result := backTest.Do()
 
 	return result, nil
 }

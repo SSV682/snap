@@ -13,7 +13,6 @@ import (
 	"worker/internal/infrastructure/external"
 	"worker/internal/service"
 	"worker/internal/service/backtest"
-	"worker/internal/service/manager"
 
 	"github.com/go-playground/validator/v10"
 	routing "github.com/qiangxue/fasthttp-routing"
@@ -75,7 +74,7 @@ func NewApp(configPath string) *App {
 	var runners []RunAsService
 
 	runners = append(runners, external.NewExternalClient(external.Config{InCh: signalCh}))
-	runners = append(runners, manager.NewManager(manager.Config{ExternalCh: signalCh}))
+	//runners = append(runners, manager.NewManager(manager.Config{ExternalCh: signalCh}))
 
 	handlers.Register(
 		router,
