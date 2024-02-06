@@ -11,8 +11,10 @@ import (
 	v1 "worker/internal/handlers/v1"
 	"worker/internal/infrastructure/broker"
 	"worker/internal/infrastructure/external"
+	"worker/internal/infrastructure/repository/postgres"
 	"worker/internal/service"
 	"worker/internal/service/backtest"
+	"worker/internal/service/manager"
 
 	"github.com/go-playground/validator/v10"
 	routing "github.com/qiangxue/fasthttp-routing"
@@ -39,16 +41,16 @@ func NewApp(configPath string) *App {
 
 	router := routing.New()
 
-	client, err := broker.NewClient(
+	brokerClient, err := broker.NewClient(
 		context.Background(),
 		investgo.Config{
-			EndPoint:                      cfg.InvestConfig.EndPoint,
-			Token:                         cfg.InvestConfig.Token,
-			AppName:                       cfg.InvestConfig.AppName,
-			AccountId:                     cfg.InvestConfig.AccountId,
-			DisableResourceExhaustedRetry: cfg.InvestConfig.DisableResourceExhaustedRetry,
-			DisableAllRetry:               cfg.InvestConfig.DisableAllRetry,
-			MaxRetries:                    cfg.InvestConfig.MaxRetries,
+			EndPoint:                      cfg.Invest.EndPoint,
+			Token:                         cfg.Invest.Token,
+			AppName:                       cfg.Invest.AppName,
+			AccountId:                     cfg.Invest.AccountId,
+			DisableResourceExhaustedRetry: cfg.Invest.DisableResourceExhaustedRetry,
+			DisableAllRetry:               cfg.Invest.DisableAllRetry,
+			MaxRetries:                    cfg.Invest.MaxRetries,
 		},
 		nil,
 	)
@@ -56,25 +58,38 @@ func NewApp(configPath string) *App {
 		return nil
 	}
 
+	db, err := initDB(cfg.Databases.Postgres)
+	if err != nil {
+		log.Fatalf("Failed to init db pool of connections: %v", err)
+	}
+
+	settingsRepo := postgres.NewSettingsRepository(db)
+
+	managerService := manager.NewManager(manager.Config{
+		SettingsRepository: settingsRepo,
+		BrokerProvider:     brokerClient,
+		InfoProvider:       brokerClient,
+	})
+
 	signalCh := make(chan entity.Event, 1)
 
 	backTestService := backtest.NewBackTestService(
 		&backtest.Config{
-			TradingInfoProvider: client,
-			BrokerProvider:      client,
+			TradingInfoProvider: brokerClient,
+			BrokerProvider:      brokerClient,
 		},
 	)
 
 	tradingService := service.NewTradingService(
 		&service.TradingConfig{
-			TradingInfoProvider: client,
+			TradingInfoProvider: brokerClient,
 		},
 	)
 
 	var runners []RunAsService
 
 	runners = append(runners, external.NewExternalClient(external.Config{InCh: signalCh}))
-	//runners = append(runners, manager.NewManager(manager.Config{ExternalCh: signalCh}))
+	runners = append(runners, managerService)
 
 	handlers.Register(
 		router,
@@ -91,8 +106,8 @@ func NewApp(configPath string) *App {
 		cfg: &cfg,
 		httpServer: &fasthttp.Server{
 			Handler:      router.HandleRequest,
-			ReadTimeout:  cfg.HTTPServerConfig.ReadTimeout,
-			WriteTimeout: cfg.HTTPServerConfig.WriteTimeout,
+			ReadTimeout:  cfg.HTTPServer.ReadTimeout,
+			WriteTimeout: cfg.HTTPServer.WriteTimeout,
 		},
 		runners: runners,
 	}
@@ -106,7 +121,7 @@ func (a *App) Run() {
 	}
 
 	go func() {
-		if err := a.httpServer.ListenAndServe(a.cfg.HTTPServerConfig.Listen); err != nil {
+		if err := a.httpServer.ListenAndServe(a.cfg.HTTPServer.Listen); err != nil {
 			log.Fatalf("Failed listen and serve http server: %v", err)
 		}
 	}()

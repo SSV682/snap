@@ -29,3 +29,17 @@ httpserver:
   read_timeout: 60s
   write_timeout: 60s
 
+databases:
+  postgres:
+    conn_config:
+      network: tcp
+      database: postgres
+      hosts:
+        - 127.0.0.1
+      ports:
+        - 5432
+      username: postgres
+      password: qwerty12345
+    max_open_conns: 10
+    max_idle_conns: 10
+    conn_max_idle_time: 5m

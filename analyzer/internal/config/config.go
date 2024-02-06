@@ -80,6 +80,27 @@ import (
 //	MaxRetries uint `yaml:"MaxRetries"`
 //}
 
+type ConnConfig struct {
+	Network  string   `yaml:"network"`
+	Database string   `yaml:"database"`
+	Hosts    []string `yaml:"hosts"`
+	Ports    []string `yaml:"ports"`
+	Username string   `yaml:"username"`
+	Password string   `yaml:"password"`
+}
+
+type SQLConfig struct {
+	ConnConfig      `yaml:"conn_config"`
+	MaxOpenConns    int           `yaml:"max_open_conns"`
+	MaxIdleConns    int           `yaml:"max_idle_conns"`
+	ConnMaxIdleTime time.Duration `yaml:"conn_max_idle_time"`
+	ConnMaxLifetime time.Duration `yaml:"conn_max_lifetime"`
+}
+
+type DatabaseConfig struct {
+	Postgres SQLConfig `yaml:"postgres"`
+}
+
 type HTTPServerConfig struct {
 	Listen       string        `yaml:"listen"`
 	ReadTimeout  time.Duration `yaml:"read_timeout"`
@@ -87,8 +108,9 @@ type HTTPServerConfig struct {
 }
 
 type Config struct {
-	InvestConfig     investgo.Config  `yaml:"invest"`
-	HTTPServerConfig HTTPServerConfig `yaml:"httpserver"`
+	Invest     investgo.Config  `yaml:"invest"`
+	HTTPServer HTTPServerConfig `yaml:"httpserver"`
+	Databases  DatabaseConfig   `yaml:"databases"`
 }
 
 func ReadConfig(filePath string) (Config, error) {

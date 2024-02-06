@@ -45,15 +45,15 @@ type ConfigStrategySetting struct {
 	TradingTimeTo    TradingTime
 }
 
-func NewStrategySetting(cfg ConfigStrategySetting) StrategySetting {
-	return StrategySetting{
-		strategyCh:       cfg.StrategyCh,
-		strategyTimeFrom: cfg.StrategyTimeFrom,
-		strategyTimeTo:   cfg.StrategyTimeTo,
-		tradingTimeFrom:  cfg.TradingTimeFrom,
-		tradingTimeTo:    cfg.TradingTimeTo,
-	}
-}
+//func NewStrategySetting(cfg ConfigStrategySetting) StrategySetting {
+//	return StrategySetting{
+//		strategyCh:       cfg.StrategyCh,
+//		strategyTimeFrom: cfg.StrategyTimeFrom,
+//		strategyTimeTo:   cfg.StrategyTimeTo,
+//		tradingTimeFrom:  cfg.TradingTimeFrom,
+//		tradingTimeTo:    cfg.TradingTimeTo,
+//	}
+//}
 
 func (s *StrategySetting) IsTradeAvailable() bool {
 	if s.strategyTimeTo.Before(time.Now()) {
@@ -78,6 +78,12 @@ func (s *StrategySetting) IsTradeAvailable() bool {
 type StrategyStorage struct {
 	mu      sync.RWMutex
 	storage map[string]StrategySetting
+}
+
+func NewStrategyStorage() StrategyStorage {
+	return StrategyStorage{
+		storage: make(map[string]StrategySetting),
+	}
 }
 
 func (s *StrategyStorage) getTickers() []string {
