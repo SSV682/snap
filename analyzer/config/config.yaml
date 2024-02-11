@@ -19,7 +19,7 @@ graceful_timeout: 30s
 
 invest:
   AccountID: ""
-  APIToken: "t.-g2iCbUiAcSEJO4gJHzNy-EffcmKdigW87r6opyYxXL9esWnHEPzayb7_iDlaY6CwrMSiE1GEPC-__484ZDuoQ"
+  APIToken: ""
   EndPoint: sandbox-invest-public-api.tinkoff.ru:443
   AppName: snap-bot
   DisableResourceExhaustedRetry: true
