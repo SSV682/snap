@@ -108,9 +108,10 @@ type HTTPServerConfig struct {
 }
 
 type Config struct {
-	Invest     investgo.Config  `yaml:"invest"`
-	HTTPServer HTTPServerConfig `yaml:"httpserver"`
-	Databases  DatabaseConfig   `yaml:"databases"`
+	Invest          investgo.Config  `yaml:"invest"`
+	HTTPServer      HTTPServerConfig `yaml:"httpserver"`
+	Databases       DatabaseConfig   `yaml:"databases"`
+	GracefulTimeout time.Duration    `yaml:"graceful_timeout"`
 }
 
 func ReadConfig(filePath string) (Config, error) {

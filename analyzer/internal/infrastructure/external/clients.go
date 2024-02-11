@@ -8,7 +8,7 @@ import (
 	"worker/internal/entity"
 )
 
-type ExternalClient struct {
+type Client struct {
 	inCh chan entity.Event
 
 	wg       sync.WaitGroup
@@ -19,13 +19,13 @@ type Config struct {
 	InCh chan entity.Event
 }
 
-func NewExternalClient(cfg Config) *ExternalClient {
-	return &ExternalClient{
+func NewExternalClient(cfg Config) *Client {
+	return &Client{
 		inCh: cfg.InCh,
 	}
 }
 
-func (c *ExternalClient) Run() {
+func (c *Client) Run() {
 	ctx, cancel := context.WithCancel(context.Background())
 	c.cancelFn = cancel
 
@@ -46,8 +46,10 @@ func (c *ExternalClient) Run() {
 	}()
 }
 
-func (c *ExternalClient) Close() {
+func (c *Client) Close() error {
 	c.cancelFn()
 
 	c.wg.Wait()
+
+	return nil
 }

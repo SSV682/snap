@@ -15,6 +15,8 @@
 #  StorageCandleInterval: pb.CandleInterval_CANDLE_INTERVAL_1_MIN, # Интервал для обновления и запроса исторических свечей
 #}
 
+graceful_timeout: 30s
+
 invest:
   AccountID: ""
   APIToken: "t.-g2iCbUiAcSEJO4gJHzNy-EffcmKdigW87r6opyYxXL9esWnHEPzayb7_iDlaY6CwrMSiE1GEPC-__484ZDuoQ"

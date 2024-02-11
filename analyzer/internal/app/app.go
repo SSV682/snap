@@ -2,9 +2,11 @@ package app
 
 import (
 	"context"
+	"io"
 	"os"
 	"os/signal"
 	"syscall"
+	"time"
 	"worker/internal/config"
 	"worker/internal/entity"
 	"worker/internal/handlers"
@@ -23,14 +25,15 @@ import (
 	"github.com/valyala/fasthttp"
 )
 
-type RunAsService interface {
+type Runner interface {
 	Run()
 }
 
 type App struct {
 	cfg        *config.Config
 	httpServer *fasthttp.Server
-	runners    []RunAsService
+	runners    []Runner
+	closers    []io.Closer
 }
 
 func NewApp(configPath string) *App {
@@ -86,10 +89,15 @@ func NewApp(configPath string) *App {
 		},
 	)
 
-	var runners []RunAsService
+	var runners []Runner
+	var closers []io.Closer
 
-	runners = append(runners, external.NewExternalClient(external.Config{InCh: signalCh}))
+	ec := external.NewExternalClient(external.Config{InCh: signalCh})
+	runners = append(runners, ec)
+	closers = append(closers, ec)
+
 	runners = append(runners, managerService)
+	closers = append(closers, managerService)
 
 	handlers.Register(
 		router,
@@ -110,12 +118,11 @@ func NewApp(configPath string) *App {
 			WriteTimeout: cfg.HTTPServer.WriteTimeout,
 		},
 		runners: runners,
+		closers: closers,
 	}
 }
 
 func (a *App) Run() {
-	ctx, cancel := context.WithCancel(context.Background())
-
 	for _, runner := range a.runners {
 		runner.Run()
 	}
@@ -127,21 +134,43 @@ func (a *App) Run() {
 	}()
 
 	log.Info("App has been started")
-	a.waitGracefulShutdown(ctx, cancel)
+	a.waitGracefulShutdown()
 }
 
-func (a *App) waitGracefulShutdown(_ context.Context, cancel context.CancelFunc) {
+// waitGracefulShutdown waits for a graceful shutdown signal and then shuts down the application.
+// It attempts to close the HTTP server connections and gracefully close any background processes.
+func (a *App) waitGracefulShutdown() {
 	quit := make(chan os.Signal, 1)
 	signal.Notify(
 		quit,
-		syscall.SIGABRT, syscall.SIGQUIT, syscall.SIGHUP, syscall.SIGTERM, os.Interrupt,
+		syscall.SIGABRT, // syscall.SIGABRT: abort signal from the operating system
+		syscall.SIGQUIT, // syscall.SIGQUIT: terminal interrupt signal
+		syscall.SIGHUP,  // syscall.SIGHUP: terminal hangup signal
+		syscall.SIGTERM, // syscall.SIGTERM: termination signal
+		os.Interrupt,    // os.Interrupt: interrupt signal sent from the terminal
 	)
 
 	log.Infof("Caught signal %s. Shutting down...", <-quit)
 
-	cancel()
+	done := make(chan struct{})
+	go func() {
+		// try to close http server connections
+		if err := a.httpServer.Shutdown(); err != nil {
+			log.Errorf("Failed to shutdown http server: %v", err)
+		}
 
-	if err := a.httpServer.Shutdown(); err != nil {
-		log.Errorf("Failed to shutdown http server: %v", err)
+		close(done)
+	}()
+
+	select {
+	case <-time.After(a.cfg.GracefulTimeout):
+	case <-done:
+	}
+
+	// try to close background processes
+	for _, c := range a.closers {
+		if err := c.Close(); err != nil {
+			log.Errorf("Failed to close: %v", err)
+		}
 	}
 }

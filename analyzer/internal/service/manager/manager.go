@@ -71,6 +71,7 @@ func NewManager(cfg Config) *Manager {
 	}
 }
 
+// Run runs the manager
 func (m *Manager) Run() {
 	ctx, cancel := context.WithCancel(context.Background())
 	m.cancelFn = cancel
@@ -88,6 +89,7 @@ func (m *Manager) Run() {
 	}()
 }
 
+// loadStrategySettings loads strategy settings from storage and sets them to the strategies
 func (m *Manager) loadStrategySettings(ctx context.Context) error {
 	settings, err := m.settingsRepository.List(ctx)
 	if err != nil {
@@ -132,7 +134,8 @@ func (m *Manager) run(ctx context.Context) {
 	}
 }
 
-func (m *Manager) Close() {
+// Close closes all strategies and stops manager
+func (m *Manager) Close() error {
 	m.cancelFn()
 
 	for i := range m.strategies {
@@ -140,4 +143,6 @@ func (m *Manager) Close() {
 	}
 
 	m.wg.Wait()
+
+	return nil
 }

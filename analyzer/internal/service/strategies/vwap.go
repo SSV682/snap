@@ -40,6 +40,7 @@ func NewVWAPStrategy(cfg *VWAPStrategyConfig) *VWAPStrategy {
 		//},
 	}
 }
+
 func (c *VWAPStrategy) Run() {
 	ctx, cancel := context.WithCancel(context.Background())
 	c.cancelFn = cancel
