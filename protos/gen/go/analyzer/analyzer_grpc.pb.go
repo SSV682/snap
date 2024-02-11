@@ -20,89 +20,89 @@ import (
 const _ = grpc.SupportPackageIsVersion7
 
 const (
-	Manager_Send_FullMethodName = "/analyzer.Manager/Send"
+	Solver_MakeDecision_FullMethodName = "/analyzer.Solver/MakeDecision"
 )
 
-// ManagerClient is the client API for Manager service.
+// SolverClient is the client API for Solver service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
-type ManagerClient interface {
-	Send(ctx context.Context, in *EventRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
+type SolverClient interface {
+	MakeDecision(ctx context.Context, in *EventRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
 }
 
-type managerClient struct {
+type solverClient struct {
 	cc grpc.ClientConnInterface
 }
 
-func NewManagerClient(cc grpc.ClientConnInterface) ManagerClient {
-	return &managerClient{cc}
+func NewSolverClient(cc grpc.ClientConnInterface) SolverClient {
+	return &solverClient{cc}
 }
 
-func (c *managerClient) Send(ctx context.Context, in *EventRequest, opts ...grpc.CallOption) (*emptypb.Empty, error) {
+func (c *solverClient) MakeDecision(ctx context.Context, in *EventRequest, opts ...grpc.CallOption) (*emptypb.Empty, error) {
 	out := new(emptypb.Empty)
-	err := c.cc.Invoke(ctx, Manager_Send_FullMethodName, in, out, opts...)
+	err := c.cc.Invoke(ctx, Solver_MakeDecision_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-// ManagerServer is the server API for Manager service.
-// All implementations must embed UnimplementedManagerServer
+// SolverServer is the server API for Solver service.
+// All implementations must embed UnimplementedSolverServer
 // for forward compatibility
-type ManagerServer interface {
-	Send(context.Context, *EventRequest) (*emptypb.Empty, error)
-	mustEmbedUnimplementedManagerServer()
+type SolverServer interface {
+	MakeDecision(context.Context, *EventRequest) (*emptypb.Empty, error)
+	mustEmbedUnimplementedSolverServer()
 }
 
-// UnimplementedManagerServer must be embedded to have forward compatible implementations.
-type UnimplementedManagerServer struct {
+// UnimplementedSolverServer must be embedded to have forward compatible implementations.
+type UnimplementedSolverServer struct {
 }
 
-func (UnimplementedManagerServer) Send(context.Context, *EventRequest) (*emptypb.Empty, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method Send not implemented")
+func (UnimplementedSolverServer) MakeDecision(context.Context, *EventRequest) (*emptypb.Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method MakeDecision not implemented")
 }
-func (UnimplementedManagerServer) mustEmbedUnimplementedManagerServer() {}
+func (UnimplementedSolverServer) mustEmbedUnimplementedSolverServer() {}
 
-// UnsafeManagerServer may be embedded to opt out of forward compatibility for this service.
-// Use of this interface is not recommended, as added methods to ManagerServer will
+// UnsafeSolverServer may be embedded to opt out of forward compatibility for this service.
+// Use of this interface is not recommended, as added methods to SolverServer will
 // result in compilation errors.
-type UnsafeManagerServer interface {
-	mustEmbedUnimplementedManagerServer()
+type UnsafeSolverServer interface {
+	mustEmbedUnimplementedSolverServer()
 }
 
-func RegisterManagerServer(s grpc.ServiceRegistrar, srv ManagerServer) {
-	s.RegisterService(&Manager_ServiceDesc, srv)
+func RegisterSolverServer(s grpc.ServiceRegistrar, srv SolverServer) {
+	s.RegisterService(&Solver_ServiceDesc, srv)
 }
 
-func _Manager_Send_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _Solver_MakeDecision_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(EventRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(ManagerServer).Send(ctx, in)
+		return srv.(SolverServer).MakeDecision(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: Manager_Send_FullMethodName,
+		FullMethod: Solver_MakeDecision_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ManagerServer).Send(ctx, req.(*EventRequest))
+		return srv.(SolverServer).MakeDecision(ctx, req.(*EventRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-// Manager_ServiceDesc is the grpc.ServiceDesc for Manager service.
+// Solver_ServiceDesc is the grpc.ServiceDesc for Solver service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
-var Manager_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "analyzer.Manager",
-	HandlerType: (*ManagerServer)(nil),
+var Solver_ServiceDesc = grpc.ServiceDesc{
+	ServiceName: "analyzer.Solver",
+	HandlerType: (*SolverServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
-			MethodName: "Send",
-			Handler:    _Manager_Send_Handler,
+			MethodName: "MakeDecision",
+			Handler:    _Solver_MakeDecision_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
