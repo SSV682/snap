@@ -1,9 +1,9 @@
 package manager
 
 import (
+	"analyzer/internal/entity"
 	"sync"
 	"time"
-	"worker/internal/entity"
 )
 
 type TradingTime struct {

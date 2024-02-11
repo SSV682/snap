@@ -3,20 +3,26 @@ package grpcapp
 import (
 	"fmt"
 	"net"
-	solvergrpc "solver/internal/grpc"
 	"time"
+
+	solvergrpc "solver/internal/grpc"
 
 	"google.golang.org/grpc"
 )
 
+// Config is the configuration for the GRPC server
 type Config struct {
-	Port    int           `yaml:"port"`
-	Timeout time.Duration `yaml:"timeout"`
+	Manager solvergrpc.Manager
+
+	Port    int
+	Timeout time.Duration
 }
 
+// App is the GRPC server
 type App struct {
 	gRPCServer *grpc.Server
-	port       int
+
+	port int
 }
 
 // NewApp creates a new instance of the application.
@@ -25,7 +31,7 @@ func NewApp(cfg *Config) *App {
 	grpcServer := grpc.NewServer()
 
 	// RegisterServerAPI registers the gRPC server API.
-	solvergrpc.RegisterServerAPI(grpcServer, NewManager(cfg)) //TODO: new manager
+	solvergrpc.RegisterServerAPI(grpcServer, cfg.Manager)
 
 	// app is the application instance.
 	app := &App{

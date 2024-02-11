@@ -1,7 +1,7 @@
 package backtest
 
 import (
-	"worker/internal/entity"
+	"analyzer/internal/entity"
 )
 
 type BackTest struct {

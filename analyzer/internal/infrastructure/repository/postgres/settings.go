@@ -3,9 +3,9 @@ package postgres
 import (
 	//"log"
 
+	"analyzer/internal/entity"
 	"context"
 	"fmt"
-	"worker/internal/entity"
 
 	"github.com/jmoiron/sqlx"
 )

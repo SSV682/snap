@@ -1,10 +1,10 @@
 package postgres
 
 import (
+	"analyzer/internal/entity"
 	"database/sql/driver"
 	"fmt"
 	"time"
-	"worker/internal/entity"
 )
 
 //type CandleRow struct {

@@ -1,9 +1,9 @@
 package v1
 
 import (
+	"analyzer/internal/dto"
+	"analyzer/internal/entity"
 	"time"
-	"worker/internal/dto"
-	"worker/internal/entity"
 )
 
 type backTestRequest struct {

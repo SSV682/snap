@@ -6,8 +6,8 @@ import (
 	"sync"
 	"time"
 
-	"worker/internal/entity"
-	"worker/internal/service/strategies"
+	"analyzer/internal/entity"
+	"analyzer/internal/service/strategies"
 )
 
 type StrategySettingsRepository interface {

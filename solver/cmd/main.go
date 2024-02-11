@@ -3,8 +3,8 @@ package main
 import (
 	"flag"
 
-	"analyzer/internal/app"
-	"analyzer/internal/config"
+	"solver/internal/app"
+	"solver/internal/config"
 
 	log "github.com/sirupsen/logrus"
 )
@@ -23,7 +23,7 @@ func main() {
 	}
 
 	// application is the instance of the application.
-	application := app.NewApp(cfg)
+	application := app.NewApp(&cfg)
 	// Run starts the application.
 	application.Run()
 }

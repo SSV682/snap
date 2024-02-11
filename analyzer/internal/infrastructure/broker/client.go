@@ -1,11 +1,11 @@
 package broker
 
 import (
+	"analyzer/internal/entity"
 	"context"
 	"errors"
 	"fmt"
 	"time"
-	"worker/internal/entity"
 
 	"github.com/russianinvestments/invest-api-go-sdk/investgo"
 	investapi "github.com/russianinvestments/invest-api-go-sdk/proto"
@@ -32,6 +32,7 @@ func NewClient(ctx context.Context, config investgo.Config, logger investgo.Logg
 	}, nil
 }
 
+// Stop stops the client
 func (c *Client) Stop() {
 	c.logger.Infof("Closing client connection")
 	err := c.client.Stop()
@@ -40,6 +41,7 @@ func (c *Client) Stop() {
 	}
 }
 
+// getInstrument returns the instrument by ticker
 func (c *Client) getInstrument(ticker string) (*investapi.InstrumentShort, error) {
 	instrResp, err := c.instruments.FindInstrument(ticker)
 	if err != nil {
@@ -55,6 +57,7 @@ func (c *Client) getInstrument(ticker string) (*investapi.InstrumentShort, error
 	return nil, errors.New("not found instrument")
 }
 
+// HistoricCandles returns the candles for the given ticker and time interval
 func (c *Client) HistoricCandles(ticker string, timeFrom, timeTo time.Time) ([]entity.Candle, error) {
 	instrument, err := c.getInstrument(ticker)
 	if err != nil {
@@ -94,6 +97,7 @@ func (c *Client) GetTaxFn() entity.TaxFn {
 	return func(price float64) float64 { return price * 0.05 / 100 }
 }
 
+// GetCurrencies returns the list of currencies
 func (c *Client) GetCurrencies() ([]entity.Instrument, error) {
 	resp, err := c.instruments.Currencies(investapi.InstrumentStatus_INSTRUMENT_STATUS_BASE)
 	if err != nil {
@@ -114,6 +118,7 @@ func (c *Client) GetCurrencies() ([]entity.Instrument, error) {
 	return result, nil
 }
 
+// GetStocks returns the list of stocks
 func (c *Client) GetStocks() ([]entity.Instrument, error) {
 	resp, err := c.instruments.Shares(investapi.InstrumentStatus_INSTRUMENT_STATUS_BASE)
 	if err != nil {
@@ -134,6 +139,7 @@ func (c *Client) GetStocks() ([]entity.Instrument, error) {
 	return result, nil
 }
 
+// GetFutures returns the list of futures
 func (c *Client) GetFutures() ([]entity.Instrument, error) {
 	resp, err := c.instruments.Futures(investapi.InstrumentStatus_INSTRUMENT_STATUS_BASE)
 	if err != nil {
@@ -154,6 +160,7 @@ func (c *Client) GetFutures() ([]entity.Instrument, error) {
 	return result, nil
 }
 
+// LastCandle returns the last candles for the given ticker
 func (c *Client) LastCandle(ticker string) (entity.Candle, error) {
 	instrument, err := c.getInstrument(ticker)
 	if err != nil {

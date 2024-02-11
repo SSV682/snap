@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	"worker/internal/config"
+	"analyzer/internal/config"
 
 	_ "github.com/jackc/pgx/v4/stdlib"
 	"github.com/jmoiron/sqlx"

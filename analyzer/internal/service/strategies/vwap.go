@@ -1,9 +1,9 @@
 package strategies
 
 import (
+	"analyzer/internal/entity"
 	"context"
 	"sync"
-	"worker/internal/entity"
 )
 
 type VWAPStrategy struct {

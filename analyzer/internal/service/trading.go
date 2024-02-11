@@ -1,8 +1,8 @@
 package service
 
 import (
+	"analyzer/internal/entity"
 	"time"
-	"worker/internal/entity"
 )
 
 type TradingInfoProvider interface {

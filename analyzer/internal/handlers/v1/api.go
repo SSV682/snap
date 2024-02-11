@@ -1,8 +1,8 @@
 package v1
 
 import (
-	"worker/internal/dto"
-	"worker/internal/entity"
+	"analyzer/internal/dto"
+	"analyzer/internal/entity"
 
 	routing "github.com/qiangxue/fasthttp-routing"
 )

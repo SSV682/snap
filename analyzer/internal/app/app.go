@@ -1,22 +1,23 @@
 package app
 
 import (
+	"analyzer/internal/infrastructure/solver"
 	"context"
 	"io"
 	"os"
 	"os/signal"
 	"syscall"
 	"time"
-	"worker/internal/config"
-	"worker/internal/entity"
-	"worker/internal/handlers"
-	v1 "worker/internal/handlers/v1"
-	"worker/internal/infrastructure/broker"
-	"worker/internal/infrastructure/external"
-	"worker/internal/infrastructure/repository/postgres"
-	"worker/internal/service"
-	"worker/internal/service/backtest"
-	"worker/internal/service/manager"
+
+	"analyzer/internal/config"
+	"analyzer/internal/entity"
+	"analyzer/internal/handlers"
+	v1 "analyzer/internal/handlers/v1"
+	"analyzer/internal/infrastructure/broker"
+	"analyzer/internal/infrastructure/repository/postgres"
+	"analyzer/internal/service"
+	"analyzer/internal/service/backtest"
+	"analyzer/internal/service/manager"
 
 	"github.com/go-playground/validator/v10"
 	routing "github.com/qiangxue/fasthttp-routing"
@@ -36,11 +37,7 @@ type App struct {
 	closers    []io.Closer
 }
 
-func NewApp(configPath string) *App {
-	cfg, err := config.ReadConfig(configPath)
-	if err != nil {
-		log.Fatalf("Failed to load configs: %v", err)
-	}
+func NewApp(cfg config.Config) *App {
 
 	router := routing.New()
 
@@ -92,7 +89,7 @@ func NewApp(configPath string) *App {
 	var runners []Runner
 	var closers []io.Closer
 
-	ec := external.NewExternalClient(external.Config{InCh: signalCh})
+	ec := solver.NewSolverClient(solver.Config{InCh: signalCh})
 	runners = append(runners, ec)
 	closers = append(closers, ec)
 

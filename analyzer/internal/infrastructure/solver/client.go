@@ -1,13 +1,14 @@
-package external
+package solver
 
 import (
 	"context"
 	"fmt"
 	"sync"
 
-	"worker/internal/entity"
+	"analyzer/internal/entity"
 )
 
+// Client is the client API for the solver service.
 type Client struct {
 	inCh chan entity.Event
 
@@ -15,16 +16,18 @@ type Client struct {
 	cancelFn context.CancelFunc
 }
 
+// Config is the configuration for the solver service.
 type Config struct {
 	InCh chan entity.Event
 }
 
-func NewExternalClient(cfg Config) *Client {
+func NewSolverClient(cfg Config) *Client {
 	return &Client{
 		inCh: cfg.InCh,
 	}
 }
 
+// Run starts the solver service.
 func (c *Client) Run() {
 	ctx, cancel := context.WithCancel(context.Background())
 	c.cancelFn = cancel
@@ -46,6 +49,7 @@ func (c *Client) Run() {
 	}()
 }
 
+// Close closes the solver service.
 func (c *Client) Close() error {
 	c.cancelFn()
 
