@@ -2,15 +2,21 @@ package solver
 
 import (
 	"context"
-	"fmt"
 	"sync"
 
 	"analyzer/internal/entity"
+
+	log "github.com/sirupsen/logrus"
 )
+
+type client interface {
+	MakeDecision(ctx context.Context, event entity.Event) error
+}
 
 // Client is the client API for the solver service.
 type Client struct {
-	inCh chan entity.Event
+	inCh   chan entity.Event
+	client client
 
 	wg       sync.WaitGroup
 	cancelFn context.CancelFunc
@@ -18,12 +24,15 @@ type Client struct {
 
 // Config is the configuration for the solver service.
 type Config struct {
-	InCh chan entity.Event
+	Client client
+	InCh   chan entity.Event
 }
 
+// NewSolverClient creates a new Solver
 func NewSolverClient(cfg Config) *Client {
 	return &Client{
-		inCh: cfg.InCh,
+		inCh:   cfg.InCh,
+		client: cfg.Client,
 	}
 }
 
@@ -39,9 +48,9 @@ func (c *Client) Run() {
 		for {
 			select {
 			case event := <-c.inCh:
-				//TODO: execute event
-
-				fmt.Printf("event: %v", event)
+				if err := c.client.MakeDecision(ctx, event); err != nil {
+					log.Printf("Failed to make decision: %v", err)
+				}
 			case <-ctx.Done():
 				return
 			}

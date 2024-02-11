@@ -89,7 +89,20 @@ func NewApp(cfg config.Config) *App {
 	var runners []Runner
 	var closers []io.Closer
 
-	ec := solver.NewSolverClient(solver.Config{InCh: signalCh})
+	grpcClient, err := solver.NewGRCPClient(context.Background(), &solver.GRCPConfig{
+		Addr:    cfg.GRPC.Address,
+		Timeout: cfg.GRPC.Timeout,
+		Retries: cfg.GRPC.Retries,
+	})
+	if err != nil {
+		return nil
+	}
+
+	ec := solver.NewSolverClient(solver.Config{
+		InCh:   signalCh,
+		Client: grpcClient,
+	})
+
 	runners = append(runners, ec)
 	closers = append(closers, ec)
 

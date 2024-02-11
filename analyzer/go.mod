@@ -19,6 +19,7 @@ require (
 	cloud.google.com/go/compute v1.20.1 // indirect
 	cloud.google.com/go/compute/metadata v0.2.3 // indirect
 	github.com/BurntSushi/toml v1.2.1 // indirect
+	github.com/SSV682/snap v0.0.0-20240211172838-ac50653746d4 // indirect
 	github.com/andybalholm/brotli v1.0.5 // indirect
 	github.com/gabriel-vasile/mimetype v1.4.2 // indirect
 	github.com/go-ozzo/ozzo-routing v2.1.4+incompatible // indirect
