@@ -172,9 +172,16 @@ func (c *Client) LastCandle(ticker string) (entity.Candle, error) {
 		return entity.Candle{}, fmt.Errorf("get historic candles: %v", err)
 	}
 
-	lastCandle := response.GetCandles()[len(response.GetCandles())-1]
+	//TODO: can be nil, panic
+	candles := response.GetCandles()
+	if len(candles) == 0 {
+		return entity.Candle{}, errors.New("not found candles")
+	}
+
+	lastCandle := candles[len(response.GetCandles())-1]
 
 	return entity.Candle{
+		Ticker: ticker,
 		Open:   lastCandle.GetOpen().ToFloat(),
 		High:   lastCandle.GetHigh().ToFloat(),
 		Low:    lastCandle.GetLow().ToFloat(),

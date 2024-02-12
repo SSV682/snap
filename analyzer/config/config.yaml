@@ -46,7 +46,8 @@ databases:
     max_idle_conns: 10
     conn_max_idle_time: 5m
 
-grpc:
-  address: 127.0.0.1
-  timeout: 50s
-  retries: 3
+clients:
+  solver:
+    address: 127.0.0.1:44044
+    timeout: 50s
+    retries: 3

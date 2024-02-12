@@ -10,7 +10,6 @@ import (
 	"time"
 
 	"analyzer/internal/config"
-	"analyzer/internal/entity"
 	"analyzer/internal/handlers"
 	v1 "analyzer/internal/handlers/v1"
 	"analyzer/internal/infrastructure/broker"
@@ -65,13 +64,21 @@ func NewApp(cfg config.Config) *App {
 
 	settingsRepo := postgres.NewSettingsRepository(db)
 
+	solverClient, err := solver.NewGRCPClient(context.Background(), &solver.GRCPConfig{
+		Addr:    cfg.Clients.Solver.Address,
+		Retries: cfg.Clients.Solver.Retries,
+		Timeout: cfg.Clients.Solver.Timeout,
+	})
+	if err != nil {
+		log.Fatalf("Failed to create gRPC client: %v", err)
+	}
+
 	managerService := manager.NewManager(manager.Config{
 		SettingsRepository: settingsRepo,
 		BrokerProvider:     brokerClient,
 		InfoProvider:       brokerClient,
+		SolverClient:       solverClient,
 	})
-
-	signalCh := make(chan entity.Event, 1)
 
 	backTestService := backtest.NewBackTestService(
 		&backtest.Config{
@@ -88,23 +95,6 @@ func NewApp(cfg config.Config) *App {
 
 	var runners []Runner
 	var closers []io.Closer
-
-	grpcClient, err := solver.NewGRCPClient(context.Background(), &solver.GRCPConfig{
-		Addr:    cfg.GRPC.Address,
-		Timeout: cfg.GRPC.Timeout,
-		Retries: cfg.GRPC.Retries,
-	})
-	if err != nil {
-		return nil
-	}
-
-	ec := solver.NewSolverClient(solver.Config{
-		InCh:   signalCh,
-		Client: grpcClient,
-	})
-
-	runners = append(runners, ec)
-	closers = append(closers, ec)
 
 	runners = append(runners, managerService)
 	closers = append(closers, managerService)

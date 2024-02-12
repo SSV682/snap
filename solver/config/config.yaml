@@ -2,7 +2,7 @@ graceful_timeout: 30s
 
 invest:
   AccountID: ""
-  APIToken: "t.-g2iCbUiAcSEJO4gJHzNy-EffcmKdigW87r6opyYxXL9esWnHEPzayb7_iDlaY6CwrMSiE1GEPC-__484ZDuoQ"
+  APIToken: ""
   EndPoint: sandbox-invest-public-api.tinkoff.ru:443
   AppName: snap-bot
   DisableResourceExhaustedRetry: true
@@ -10,7 +10,7 @@ invest:
   MaxRetries: 3
 
 httpserver:
-  listen: :8080
+  listen: :8081
   read_timeout: 60s
   write_timeout: 60s
 

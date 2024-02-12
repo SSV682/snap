@@ -8,6 +8,8 @@ import (
 
 	"analyzer/internal/entity"
 	"analyzer/internal/service/strategies"
+
+	log "github.com/sirupsen/logrus"
 )
 
 type StrategySettingsRepository interface {
@@ -16,6 +18,10 @@ type StrategySettingsRepository interface {
 
 type BrokerProvider interface {
 	GetTaxFn() entity.TaxFn
+}
+
+type SolverClient interface {
+	MakeDecision(ctx context.Context, event entity.Event) error
 }
 
 type TradingInfoProvider interface {
@@ -33,6 +39,7 @@ type Manager struct {
 	brokerProvider     BrokerProvider
 	infoProvider       TradingInfoProvider
 	settingsStorage    StrategyStorage
+	solverClient       SolverClient
 
 	strategies []Strategy
 
@@ -47,6 +54,7 @@ type Config struct {
 	SettingsRepository StrategySettingsRepository
 	BrokerProvider     BrokerProvider
 	InfoProvider       TradingInfoProvider
+	SolverClient       SolverClient
 }
 
 func NewManager(cfg Config) *Manager {
@@ -64,10 +72,12 @@ func NewManager(cfg Config) *Manager {
 		settingsRepository: cfg.SettingsRepository,
 		brokerProvider:     cfg.BrokerProvider,
 		infoProvider:       cfg.InfoProvider,
-		strategies:         []Strategy{vwapStrategy},
-		settingsStorage:    NewStrategyStorage(),
-		inCh:               inCh,
-		outCh:              outCh,
+		solverClient:       cfg.SolverClient,
+
+		strategies:      []Strategy{vwapStrategy},
+		settingsStorage: NewStrategyStorage(),
+		inCh:            inCh,
+		outCh:           outCh,
 	}
 }
 
@@ -123,8 +133,11 @@ func (m *Manager) run(ctx context.Context) {
 
 			m.inCh <- candle
 		case event := <-m.outCh:
-			fmt.Printf("event: %v", event)
-			//m.externalCh <- event
+			log.Infof("event: %v", event)
+			err := m.solverClient.MakeDecision(ctx, event)
+			if err != nil {
+				log.Errorf("make decision: %v", err)
+			}
 		case <-ctx.Done():
 
 			close(m.inCh)

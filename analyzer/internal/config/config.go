@@ -107,10 +107,14 @@ type HTTPServerConfig struct {
 	WriteTimeout time.Duration `yaml:"write_timeout"`
 }
 
-type GRPCConfig struct {
+type GRPCClient struct {
 	Address string        `yaml:"address"`
 	Timeout time.Duration `yaml:"timeout"`
 	Retries int           `yaml:"retries"`
+}
+
+type ClientsConfig struct {
+	Solver GRPCClient `yaml:"solver"`
 }
 
 type Config struct {
@@ -118,7 +122,7 @@ type Config struct {
 	HTTPServer      HTTPServerConfig `yaml:"httpserver"`
 	Databases       DatabaseConfig   `yaml:"databases"`
 	GracefulTimeout time.Duration    `yaml:"graceful_timeout"`
-	GRPC            GRPCConfig       `yaml:"grpc"`
+	Clients         ClientsConfig    `yaml:"clients"`
 }
 
 func ReadConfig(filePath string) (Config, error) {

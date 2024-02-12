@@ -9,6 +9,7 @@ import (
 type VWAPStrategy struct {
 	inCh                       chan entity.Candle
 	outCh                      chan entity.Event
+	ticker                     string
 	thresholdTakeProfitPercent float64
 	thresholdStopLostPercent   float64
 
@@ -26,18 +27,18 @@ type VWAPStrategy struct {
 type VWAPStrategyConfig struct {
 	InCh                       chan entity.Candle
 	OutCh                      chan entity.Event
+	Ticker                     string
 	ThresholdTakeProfitPercent float64
 	ThresholdStopLostPercent   float64
 }
 
 func NewVWAPStrategy(cfg *VWAPStrategyConfig) *VWAPStrategy {
 	return &VWAPStrategy{
-		//baseStrategy: baseStrategy{
 		inCh:                       cfg.InCh,
 		outCh:                      cfg.OutCh,
+		ticker:                     cfg.Ticker,
 		thresholdTakeProfitPercent: cfg.ThresholdTakeProfitPercent,
 		thresholdStopLostPercent:   cfg.ThresholdStopLostPercent,
-		//},
 	}
 }
 
@@ -111,6 +112,7 @@ func (c *VWAPStrategy) generateSellEvent(candle entity.Candle) {
 	c.startSellingFlag = false
 
 	c.outCh <- entity.Event{
+		Ticker:    candle.Ticker,
 		Typ:       entity.Sell,
 		Price:     candle.Close,
 		Period:    c.numbersPeriod,
@@ -128,6 +130,7 @@ func (c *VWAPStrategy) generateBuyEvent(candle entity.Candle) {
 	c.dealPrice = finalPrice
 
 	c.outCh <- entity.Event{
+		Ticker:    candle.Ticker,
 		Typ:       entity.Buy,
 		Price:     finalPrice,
 		Period:    c.numbersPeriod,
