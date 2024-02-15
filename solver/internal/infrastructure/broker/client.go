@@ -95,7 +95,7 @@ func (c *Client) GetFreeMoney() (int64, error) {
 
 }
 
-func (c *Client) GetQuantityAvailabilityInstruments(ticker string) (int64, error) {
+func (c *Client) GetQuantityAvailabilityInstrument(ticker string) (int64, error) {
 	instrument, err := c.getInstrument(ticker)
 	if err != nil {
 		return 0, fmt.Errorf("find instrument: %v", err)
