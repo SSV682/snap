@@ -5,6 +5,8 @@ import (
 	"io"
 	"os"
 	"os/signal"
+	"solver/internal/entity"
+	"solver/internal/infrastructure/broker"
 	"solver/internal/service"
 	"syscall"
 	"time"
@@ -12,6 +14,7 @@ import (
 	grpcapp "solver/internal/app/grpc"
 	"solver/internal/config"
 
+	"github.com/russianinvestments/invest-api-go-sdk/investgo"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -30,11 +33,36 @@ func NewApp(cfg *config.Config) *App {
 	var runners []Runner
 	var closers []io.Closer
 
-	solver := service.Solver{}
+	eventCh := make(chan entity.Event, 1)
+
+	brokerClient, err := broker.NewClient(
+		context.Background(),
+		investgo.Config{
+			EndPoint:                      cfg.Invest.EndPoint,
+			Token:                         cfg.Invest.Token,
+			AppName:                       cfg.Invest.AppName,
+			AccountId:                     cfg.Invest.AccountId,
+			DisableResourceExhaustedRetry: cfg.Invest.DisableResourceExhaustedRetry,
+			DisableAllRetry:               cfg.Invest.DisableAllRetry,
+			MaxRetries:                    cfg.Invest.MaxRetries,
+		},
+		nil,
+	)
+	if err != nil {
+		return nil
+	}
+
+	manager := solver.NewService(solver.Config{
+		InCh:   eventCh,
+		Broker: brokerClient,
+	})
+
+	runners = append(runners, manager)
+	closers = append(closers, manager)
 
 	// create a new gRPC server
 	grpcServer := grpcapp.NewApp(&grpcapp.Config{
-		Manager: &solver,
+		OutCh:   eventCh,
 		Port:    cfg.GRPC.Port,
 		Timeout: cfg.GRPC.Timeout,
 	})

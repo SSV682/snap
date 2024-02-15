@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"solver/internal/entity"
 
 	"github.com/russianinvestments/invest-api-go-sdk/investgo"
 	investapi "github.com/russianinvestments/invest-api-go-sdk/proto"
@@ -22,6 +23,13 @@ type Client struct {
 
 	logger investgo.Logger
 }
+
+var (
+	orderDirections = map[entity.EventType]investapi.OrderDirection{
+		entity.Sell: investapi.OrderDirection_ORDER_DIRECTION_SELL,
+		entity.Buy:  investapi.OrderDirection_ORDER_DIRECTION_BUY,
+	}
+)
 
 // NewClient creates a new broker client.
 func NewClient(ctx context.Context, config investgo.Config, logger investgo.Logger) (*Client, error) {
@@ -74,8 +82,8 @@ func (c *Client) Stop() {
 	}
 }
 
-// getFreeMoney returns the amount of free money in the account.
-func (c *Client) getFreeMoney() (int64, error) {
+// GetFreeMoney returns the amount of free money in the account.
+func (c *Client) GetFreeMoney() (int64, error) {
 	portfolio, err := c.operationsCli.GetPortfolio(c.accountUID, 0)
 	if err != nil {
 		return 0, err
@@ -87,11 +95,39 @@ func (c *Client) getFreeMoney() (int64, error) {
 
 }
 
-// postOrder posts an order to the broker.
-func (c *Client) postOrder(ticker string, quantity int64, direction investapi.OrderDirection) error {
+func (c *Client) GetQuantityAvailabilityInstruments(ticker string) (int64, error) {
 	instrument, err := c.getInstrument(ticker)
 	if err != nil {
+		return 0, fmt.Errorf("find instrument: %v", err)
+	}
+
+	portfolio, err := c.operationsCli.GetPortfolio(c.accountUID, 0)
+	if err != nil {
+		return 0, err
+	}
+
+	positions := portfolio.GetPositions()
+	for i := range positions {
+		if positions[i].Figi != instrument.Figi {
+			continue
+		}
+
+		return positions[i].GetQuantity().GetUnits(), nil
+	}
+
+	return 0, nil
+}
+
+// PostOrder posts an order to the broker.
+func (c *Client) PostOrder(order entity.Order) error {
+	instrument, err := c.getInstrument(order.Ticker)
+	if err != nil {
 		return err
+	}
+
+	direction, ok := orderDirections[order.EventType]
+	if !ok {
+		return errors.New("invalid order type")
 	}
 
 	//TODO: do something with order
@@ -100,7 +136,7 @@ func (c *Client) postOrder(ticker string, quantity int64, direction investapi.Or
 			AccountId:    c.accountUID,
 			InstrumentId: instrument.GetUid(),
 			Direction:    direction,
-			Quantity:     quantity,
+			Quantity:     order.Quantity,
 			OrderType:    investapi.OrderType_ORDER_TYPE_BESTPRICE,
 			OrderId:      investgo.CreateUid(),
 		},

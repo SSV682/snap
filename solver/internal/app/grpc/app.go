@@ -3,6 +3,7 @@ package grpcapp
 import (
 	"fmt"
 	"net"
+	"solver/internal/entity"
 	"time"
 
 	solvergrpc "solver/internal/grpc"
@@ -12,7 +13,7 @@ import (
 
 // Config is the configuration for the GRPC server
 type Config struct {
-	Manager solvergrpc.Manager
+	OutCh chan entity.Event
 
 	Port    int
 	Timeout time.Duration
@@ -31,7 +32,7 @@ func NewApp(cfg *Config) *App {
 	grpcServer := grpc.NewServer()
 
 	// RegisterServerAPI registers the gRPC server API.
-	solvergrpc.RegisterServerAPI(grpcServer, cfg.Manager)
+	solvergrpc.RegisterServerAPI(grpcServer, cfg.OutCh)
 
 	// app is the application instance.
 	app := &App{

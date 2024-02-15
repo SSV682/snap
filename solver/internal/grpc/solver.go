@@ -12,22 +12,19 @@ import (
 	"google.golang.org/protobuf/types/known/emptypb"
 )
 
-type Manager interface {
-	MakeDecision(ctx context.Context, event entity.Event) error
-}
-
 type ServerAPI struct {
 	analyzer_v1.UnimplementedSolverServer
-	manager Manager
+
+	outCh chan entity.Event
 }
 
-func RegisterServerAPI(s *grpc.Server, manager Manager) {
+func RegisterServerAPI(s *grpc.Server, ch chan entity.Event) {
 	analyzer_v1.RegisterSolverServer(s, &ServerAPI{
-		manager: manager,
+		outCh: ch,
 	})
 }
 
-func (s *ServerAPI) MakeDecision(ctx context.Context, event *analyzer_v1.EventRequest) (*emptypb.Empty, error) {
+func (s *ServerAPI) MakeDecision(_ context.Context, event *analyzer_v1.EventRequest) (*emptypb.Empty, error) {
 	if event.GetTicker() == "" {
 		return nil, status.Error(codes.InvalidArgument, "ticker is required")
 	}
@@ -42,12 +39,10 @@ func (s *ServerAPI) MakeDecision(ctx context.Context, event *analyzer_v1.EventRe
 	}
 
 	//TODO: wrap error
-	if err := s.manager.MakeDecision(ctx, entity.Event{
+	s.outCh <- entity.Event{
 		Ticker:    event.GetTicker(),
 		EventType: eventType,
 		Price:     float64(event.GetPrice()),
-	}); err != nil {
-		return nil, err
 	}
 
 	return &emptypb.Empty{}, nil
