@@ -1,6 +1,7 @@
 package app
 
 import (
+	"analyzer/internal/bot/telegram"
 	"analyzer/internal/infrastructure/solver"
 	"context"
 	"io"
@@ -37,8 +38,9 @@ type App struct {
 }
 
 func NewApp(cfg config.Config) *App {
-
 	router := routing.New()
+	var runners []Runner
+	var closers []io.Closer
 
 	brokerClient, err := broker.NewClient(
 		context.Background(),
@@ -79,6 +81,12 @@ func NewApp(cfg config.Config) *App {
 		InfoProvider:       brokerClient,
 		SolverClient:       solverClient,
 	})
+	runners = append(runners, managerService)
+	closers = append(closers, managerService)
+
+	telegramBot := telegram.NewBot(&cfg.Bots.Telegram)
+	runners = append(runners, telegramBot)
+	closers = append(closers, telegramBot)
 
 	backTestService := backtest.NewBackTestService(
 		&backtest.Config{
@@ -92,12 +100,6 @@ func NewApp(cfg config.Config) *App {
 			TradingInfoProvider: brokerClient,
 		},
 	)
-
-	var runners []Runner
-	var closers []io.Closer
-
-	runners = append(runners, managerService)
-	closers = append(closers, managerService)
 
 	handlers.Register(
 		router,

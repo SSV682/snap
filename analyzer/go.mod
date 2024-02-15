@@ -4,7 +4,10 @@ go 1.20
 
 require (
 	github.com/Masterminds/squirrel v1.5.4
+	github.com/SSV682/snap v0.0.0-20240211172838-ac50653746d4
 	github.com/go-playground/validator/v10 v10.17.0
+	github.com/go-telegram-bot-api/telegram-bot-api/v5 v5.5.1
+	github.com/grpc-ecosystem/go-grpc-middleware/v2 v2.0.0-rc.5
 	github.com/ilyakaznacheev/cleanenv v1.5.0
 	github.com/jackc/pgx/v4 v4.18.1
 	github.com/jmoiron/sqlx v1.3.5
@@ -13,13 +16,13 @@ require (
 	github.com/russianinvestments/invest-api-go-sdk v1.8.0
 	github.com/sirupsen/logrus v1.9.3
 	github.com/valyala/fasthttp v1.51.0
+	google.golang.org/grpc v1.57.0
 )
 
 require (
 	cloud.google.com/go/compute v1.20.1 // indirect
 	cloud.google.com/go/compute/metadata v0.2.3 // indirect
 	github.com/BurntSushi/toml v1.2.1 // indirect
-	github.com/SSV682/snap v0.0.0-20240211172838-ac50653746d4 // indirect
 	github.com/andybalholm/brotli v1.0.5 // indirect
 	github.com/gabriel-vasile/mimetype v1.4.2 // indirect
 	github.com/go-ozzo/ozzo-routing v2.1.4+incompatible // indirect
@@ -28,7 +31,6 @@ require (
 	github.com/golang/gddo v0.0.0-20210115222349-20d68f94ee1f // indirect
 	github.com/golang/protobuf v1.5.3 // indirect
 	github.com/google/uuid v1.3.0 // indirect
-	github.com/grpc-ecosystem/go-grpc-middleware/v2 v2.0.0-rc.5 // indirect
 	github.com/jackc/chunkreader/v2 v2.0.1 // indirect
 	github.com/jackc/pgconn v1.14.0 // indirect
 	github.com/jackc/pgio v1.0.0 // indirect
@@ -54,7 +56,6 @@ require (
 	google.golang.org/genproto v0.0.0-20230530153820-e85fd2cbaebc // indirect
 	google.golang.org/genproto/googleapis/api v0.0.0-20230530153820-e85fd2cbaebc // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20230530153820-e85fd2cbaebc // indirect
-	google.golang.org/grpc v1.57.0 // indirect
 	google.golang.org/protobuf v1.31.0 // indirect
 	gopkg.in/check.v1 v1.0.0-20190902080502-41f04d3bba15 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect

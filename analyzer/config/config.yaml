@@ -51,3 +51,8 @@ clients:
     address: 127.0.0.1:44044
     timeout: 50s
     retries: 3
+
+bots:
+  telegram:
+    token: ""
+#    chat_id: -1001424262220

@@ -1,6 +1,7 @@
 package config
 
 import (
+	"analyzer/internal/bot/telegram"
 	"time"
 
 	"github.com/ilyakaznacheev/cleanenv"
@@ -117,12 +118,17 @@ type ClientsConfig struct {
 	Solver GRPCClient `yaml:"solver"`
 }
 
+type BotsConfig struct {
+	Telegram telegram.Config `yaml:"telegram"`
+}
+
 type Config struct {
 	Invest          investgo.Config  `yaml:"invest"`
 	HTTPServer      HTTPServerConfig `yaml:"httpserver"`
 	Databases       DatabaseConfig   `yaml:"databases"`
 	GracefulTimeout time.Duration    `yaml:"graceful_timeout"`
 	Clients         ClientsConfig    `yaml:"clients"`
+	Bots            BotsConfig       `yaml:"bots"`
 }
 
 func ReadConfig(filePath string) (Config, error) {

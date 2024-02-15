@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+
 	"solver/internal/entity"
 
 	"github.com/russianinvestments/invest-api-go-sdk/investgo"
@@ -40,6 +41,8 @@ func NewClient(ctx context.Context, config investgo.Config, logger investgo.Logg
 
 	accounts := client.NewSandboxServiceClient()
 	instruments := client.NewInstrumentsServiceClient()
+	operations := client.NewOperationsServiceClient()
+	orders := client.NewOrdersServiceClient()
 
 	sandboxAccount, err := accounts.OpenSandboxAccount()
 	if err != nil {
@@ -61,6 +64,8 @@ func NewClient(ctx context.Context, config investgo.Config, logger investgo.Logg
 		client:         client,
 		accountsCli:    accounts,
 		instrumentsCli: instruments,
+		operationsCli:  operations,
+		ordersCli:      orders,
 
 		accountUID: sandboxAccount.GetAccountId(),
 

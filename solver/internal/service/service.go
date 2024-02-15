@@ -9,11 +9,6 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-var (
-// orderDirections is a map of order directions.
-
-)
-
 type BrokerProvider interface {
 	GetFreeMoney() (int64, error)
 	PostOrder(order entity.Order) error
@@ -42,6 +37,8 @@ func NewService(cfg Config) *Service {
 		broker:         cfg.Broker,
 		inCh:           cfg.InCh,
 		dialTypeSwitch: entity.Sell,
+
+		orderFactory: NewOrderFactory(cfg.Broker),
 	}
 }
 
