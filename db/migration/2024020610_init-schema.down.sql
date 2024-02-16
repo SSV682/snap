@@ -1,1 +1,1 @@
-DROP SCHEMA IF EXISTS metrics_service CASCADE;
+DROP SCHEMA IF EXISTS analyzer_service CASCADE;

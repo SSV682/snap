@@ -1,0 +1,1 @@
+DROP SCHEMA IF EXISTS solver_service CASCADE;
