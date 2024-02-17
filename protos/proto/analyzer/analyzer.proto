@@ -30,13 +30,13 @@ message ActualSettingsResponse{
 }
 
 message Setting {
-    string id = 1;
+    int64 id = 1;
     string ticker = 2;
     string strategyName = 3;
     google.protobuf.Timestamp start = 4;
     google.protobuf.Timestamp end = 5;
     google.protobuf.Timestamp startInsideDay = 6;
-    google.protobuf.Timestamp endInsideDat = 7;
+    google.protobuf.Timestamp endInsideDay = 7;
 }
 
 
