@@ -20,18 +20,18 @@ import (
 const _ = grpc.SupportPackageIsVersion7
 
 const (
-	Analyzer_Create_FullMethodName             = "/analyzer.Analyzer/Create"
+	Analyzer_CreateSetting_FullMethodName      = "/analyzer.Analyzer/CreateSetting"
 	Analyzer_ListActualSettings_FullMethodName = "/analyzer.Analyzer/ListActualSettings"
-	Analyzer_Delete_FullMethodName             = "/analyzer.Analyzer/Delete"
+	Analyzer_DeleteSetting_FullMethodName      = "/analyzer.Analyzer/DeleteSetting"
 )
 
 // AnalyzerClient is the client API for Analyzer service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type AnalyzerClient interface {
-	Create(ctx context.Context, in *CreateSettingRequest, opts ...grpc.CallOption) (*CreateSettingResponse, error)
+	CreateSetting(ctx context.Context, in *CreateSettingRequest, opts ...grpc.CallOption) (*CreateSettingResponse, error)
 	ListActualSettings(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*ActualSettingsResponse, error)
-	Delete(ctx context.Context, in *DeleteSettingRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
+	DeleteSetting(ctx context.Context, in *DeleteSettingRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
 }
 
 type analyzerClient struct {
@@ -42,9 +42,9 @@ func NewAnalyzerClient(cc grpc.ClientConnInterface) AnalyzerClient {
 	return &analyzerClient{cc}
 }
 
-func (c *analyzerClient) Create(ctx context.Context, in *CreateSettingRequest, opts ...grpc.CallOption) (*CreateSettingResponse, error) {
+func (c *analyzerClient) CreateSetting(ctx context.Context, in *CreateSettingRequest, opts ...grpc.CallOption) (*CreateSettingResponse, error) {
 	out := new(CreateSettingResponse)
-	err := c.cc.Invoke(ctx, Analyzer_Create_FullMethodName, in, out, opts...)
+	err := c.cc.Invoke(ctx, Analyzer_CreateSetting_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -60,9 +60,9 @@ func (c *analyzerClient) ListActualSettings(ctx context.Context, in *emptypb.Emp
 	return out, nil
 }
 
-func (c *analyzerClient) Delete(ctx context.Context, in *DeleteSettingRequest, opts ...grpc.CallOption) (*emptypb.Empty, error) {
+func (c *analyzerClient) DeleteSetting(ctx context.Context, in *DeleteSettingRequest, opts ...grpc.CallOption) (*emptypb.Empty, error) {
 	out := new(emptypb.Empty)
-	err := c.cc.Invoke(ctx, Analyzer_Delete_FullMethodName, in, out, opts...)
+	err := c.cc.Invoke(ctx, Analyzer_DeleteSetting_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -73,9 +73,9 @@ func (c *analyzerClient) Delete(ctx context.Context, in *DeleteSettingRequest, o
 // All implementations must embed UnimplementedAnalyzerServer
 // for forward compatibility
 type AnalyzerServer interface {
-	Create(context.Context, *CreateSettingRequest) (*CreateSettingResponse, error)
+	CreateSetting(context.Context, *CreateSettingRequest) (*CreateSettingResponse, error)
 	ListActualSettings(context.Context, *emptypb.Empty) (*ActualSettingsResponse, error)
-	Delete(context.Context, *DeleteSettingRequest) (*emptypb.Empty, error)
+	DeleteSetting(context.Context, *DeleteSettingRequest) (*emptypb.Empty, error)
 	mustEmbedUnimplementedAnalyzerServer()
 }
 
@@ -83,14 +83,14 @@ type AnalyzerServer interface {
 type UnimplementedAnalyzerServer struct {
 }
 
-func (UnimplementedAnalyzerServer) Create(context.Context, *CreateSettingRequest) (*CreateSettingResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method Create not implemented")
+func (UnimplementedAnalyzerServer) CreateSetting(context.Context, *CreateSettingRequest) (*CreateSettingResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CreateSetting not implemented")
 }
 func (UnimplementedAnalyzerServer) ListActualSettings(context.Context, *emptypb.Empty) (*ActualSettingsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListActualSettings not implemented")
 }
-func (UnimplementedAnalyzerServer) Delete(context.Context, *DeleteSettingRequest) (*emptypb.Empty, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method Delete not implemented")
+func (UnimplementedAnalyzerServer) DeleteSetting(context.Context, *DeleteSettingRequest) (*emptypb.Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DeleteSetting not implemented")
 }
 func (UnimplementedAnalyzerServer) mustEmbedUnimplementedAnalyzerServer() {}
 
@@ -105,20 +105,20 @@ func RegisterAnalyzerServer(s grpc.ServiceRegistrar, srv AnalyzerServer) {
 	s.RegisterService(&Analyzer_ServiceDesc, srv)
 }
 
-func _Analyzer_Create_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _Analyzer_CreateSetting_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(CreateSettingRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(AnalyzerServer).Create(ctx, in)
+		return srv.(AnalyzerServer).CreateSetting(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: Analyzer_Create_FullMethodName,
+		FullMethod: Analyzer_CreateSetting_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(AnalyzerServer).Create(ctx, req.(*CreateSettingRequest))
+		return srv.(AnalyzerServer).CreateSetting(ctx, req.(*CreateSettingRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -141,20 +141,20 @@ func _Analyzer_ListActualSettings_Handler(srv interface{}, ctx context.Context, 
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Analyzer_Delete_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _Analyzer_DeleteSetting_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(DeleteSettingRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(AnalyzerServer).Delete(ctx, in)
+		return srv.(AnalyzerServer).DeleteSetting(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: Analyzer_Delete_FullMethodName,
+		FullMethod: Analyzer_DeleteSetting_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(AnalyzerServer).Delete(ctx, req.(*DeleteSettingRequest))
+		return srv.(AnalyzerServer).DeleteSetting(ctx, req.(*DeleteSettingRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -167,16 +167,16 @@ var Analyzer_ServiceDesc = grpc.ServiceDesc{
 	HandlerType: (*AnalyzerServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
-			MethodName: "Create",
-			Handler:    _Analyzer_Create_Handler,
+			MethodName: "CreateSetting",
+			Handler:    _Analyzer_CreateSetting_Handler,
 		},
 		{
 			MethodName: "ListActualSettings",
 			Handler:    _Analyzer_ListActualSettings_Handler,
 		},
 		{
-			MethodName: "Delete",
-			Handler:    _Analyzer_Delete_Handler,
+			MethodName: "DeleteSetting",
+			Handler:    _Analyzer_DeleteSetting_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

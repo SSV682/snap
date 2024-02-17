@@ -8,9 +8,9 @@ package analyzer;
 option go_package = "analyzer.v1";
 
 service Analyzer {
-    rpc Create(CreateSettingRequest) returns (CreateSettingResponse) {};
+    rpc CreateSetting(CreateSettingRequest) returns (CreateSettingResponse) {};
     rpc ListActualSettings(google.protobuf.Empty) returns (ActualSettingsResponse) {};
-    rpc Delete(DeleteSettingRequest) returns (google.protobuf.Empty) {};
+    rpc DeleteSetting(DeleteSettingRequest) returns (google.protobuf.Empty) {};
 }
 
 message CreateSettingRequest {
