@@ -3,7 +3,7 @@ module solver
 go 1.20
 
 require (
-	github.com/SSV682/snap v0.0.0-20240211170524-b4a8f09c2924
+	github.com/SSV682/snap v0.0.0-20240217134635-c66a9c66d103
 	github.com/ilyakaznacheev/cleanenv v1.5.0
 	github.com/russianinvestments/invest-api-go-sdk v1.9.0
 	github.com/sirupsen/logrus v1.9.3

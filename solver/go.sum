@@ -4,10 +4,8 @@ cloud.google.com/go/compute/metadata v0.2.3 h1:mg4jlk7mCAj6xXp9UJ4fjI9VUI5rubuGB
 cloud.google.com/go/compute/metadata v0.2.3/go.mod h1:VAV5nSsACxMJvgaAuX6Pk2AawlZn8kiOGuCv6gTkwuA=
 github.com/BurntSushi/toml v1.2.1 h1:9F2/+DoOYIOksmaJFPw1tGFy1eDnIJXg+UHjuD8lTak=
 github.com/BurntSushi/toml v1.2.1/go.mod h1:CxXYINrC8qIiEnFrOxCa7Jy5BFHlXnUU2pbicEuybxQ=
-github.com/SSV682/snap v0.0.0-20240207093348-31fad0ada025 h1:3DqPa0kOR2Wjhz1kSXnzkIB4Y1DeovH7WFm/FqW4vXU=
-github.com/SSV682/snap v0.0.0-20240207093348-31fad0ada025/go.mod h1:1pE7FeauGzk6bPXCPiBOlICBvwd+L0rGsoXmSCcsJ9s=
-github.com/SSV682/snap v0.0.0-20240211170524-b4a8f09c2924 h1:xliEhgx1YbYtvJO+f4/NJzlJZcXfemhbhV6DHfVm8Sw=
-github.com/SSV682/snap v0.0.0-20240211170524-b4a8f09c2924/go.mod h1:1pE7FeauGzk6bPXCPiBOlICBvwd+L0rGsoXmSCcsJ9s=
+github.com/SSV682/snap v0.0.0-20240217134635-c66a9c66d103 h1:Y4Y24kvxeInRXmJ7k11/XY88qHB00u/fLFrPw6gMoyc=
+github.com/SSV682/snap v0.0.0-20240217134635-c66a9c66d103/go.mod h1:1pE7FeauGzk6bPXCPiBOlICBvwd+L0rGsoXmSCcsJ9s=
 github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c=
 github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=

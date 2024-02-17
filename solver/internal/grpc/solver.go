@@ -5,7 +5,7 @@ import (
 
 	"solver/internal/entity"
 
-	"github.com/SSV682/snap/protos/gen/go/analyzer"
+	solverv1 "github.com/SSV682/snap/protos/gen/go/solver"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -13,35 +13,35 @@ import (
 )
 
 type ServerAPI struct {
-	analyzer_v1.UnimplementedSolverServer
+	solverv1.UnimplementedSolverServer
 
 	outCh chan entity.Event
 }
 
 func RegisterServerAPI(s *grpc.Server, ch chan entity.Event) {
-	analyzer_v1.RegisterSolverServer(s, &ServerAPI{
+	solverv1.RegisterSolverServer(s, &ServerAPI{
 		outCh: ch,
 	})
 }
 
-func (s *ServerAPI) MakeDecision(_ context.Context, event *analyzer_v1.EventRequest) (*emptypb.Empty, error) {
+func (s *ServerAPI) MakeDecision(_ context.Context, event *solverv1.EventRequest) (*emptypb.Empty, error) {
 	if event.GetTicker() == "" {
 		return nil, status.Error(codes.InvalidArgument, "ticker is required")
 	}
 
-	if event.GetEventType() == "" {
-		return nil, status.Error(codes.InvalidArgument, "type is required")
-	}
+	var et entity.EventType
 
-	eventType, err := ToEventType(event.GetEventType())
-	if err != nil {
-		return nil, status.Error(codes.InvalidArgument, err.Error())
+	switch event.GetEventType() {
+	case solverv1.EventType_EVENT_TYPE_SELL:
+		et = entity.Sell
+	case solverv1.EventType_EVENT_TYPE_BUY:
+		et = entity.Buy
 	}
 
 	//TODO: wrap error
 	s.outCh <- entity.Event{
 		Ticker:    event.GetTicker(),
-		EventType: eventType,
+		EventType: et,
 		Price:     float64(event.GetPrice()),
 	}
 
