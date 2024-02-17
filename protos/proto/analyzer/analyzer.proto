@@ -10,6 +10,7 @@ option go_package = "analyzer.v1";
 service Analyzer {
     rpc Create(CreateSettingRequest) returns (CreateSettingResponse) {};
     rpc ListActualSettings(google.protobuf.Empty) returns (ActualSettingsResponse) {};
+    rpc Delete(DeleteSettingRequest) returns (google.protobuf.Empty) {};
 }
 
 message CreateSettingRequest {
@@ -22,7 +23,7 @@ message CreateSettingRequest {
 }
 
 message CreateSettingResponse {
-    string id = 1;
+    int64 id = 1;
 }
 
 message ActualSettingsResponse{
@@ -39,5 +40,8 @@ message Setting {
     google.protobuf.Timestamp endInsideDay = 7;
 }
 
+message DeleteSettingRequest{
+    int64 id = 1;
+}
 
 

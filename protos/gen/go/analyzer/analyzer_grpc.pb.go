@@ -22,6 +22,7 @@ const _ = grpc.SupportPackageIsVersion7
 const (
 	Analyzer_Create_FullMethodName             = "/analyzer.Analyzer/Create"
 	Analyzer_ListActualSettings_FullMethodName = "/analyzer.Analyzer/ListActualSettings"
+	Analyzer_Delete_FullMethodName             = "/analyzer.Analyzer/Delete"
 )
 
 // AnalyzerClient is the client API for Analyzer service.
@@ -30,6 +31,7 @@ const (
 type AnalyzerClient interface {
 	Create(ctx context.Context, in *CreateSettingRequest, opts ...grpc.CallOption) (*CreateSettingResponse, error)
 	ListActualSettings(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*ActualSettingsResponse, error)
+	Delete(ctx context.Context, in *DeleteSettingRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
 }
 
 type analyzerClient struct {
@@ -58,12 +60,22 @@ func (c *analyzerClient) ListActualSettings(ctx context.Context, in *emptypb.Emp
 	return out, nil
 }
 
+func (c *analyzerClient) Delete(ctx context.Context, in *DeleteSettingRequest, opts ...grpc.CallOption) (*emptypb.Empty, error) {
+	out := new(emptypb.Empty)
+	err := c.cc.Invoke(ctx, Analyzer_Delete_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // AnalyzerServer is the server API for Analyzer service.
 // All implementations must embed UnimplementedAnalyzerServer
 // for forward compatibility
 type AnalyzerServer interface {
 	Create(context.Context, *CreateSettingRequest) (*CreateSettingResponse, error)
 	ListActualSettings(context.Context, *emptypb.Empty) (*ActualSettingsResponse, error)
+	Delete(context.Context, *DeleteSettingRequest) (*emptypb.Empty, error)
 	mustEmbedUnimplementedAnalyzerServer()
 }
 
@@ -76,6 +88,9 @@ func (UnimplementedAnalyzerServer) Create(context.Context, *CreateSettingRequest
 }
 func (UnimplementedAnalyzerServer) ListActualSettings(context.Context, *emptypb.Empty) (*ActualSettingsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListActualSettings not implemented")
+}
+func (UnimplementedAnalyzerServer) Delete(context.Context, *DeleteSettingRequest) (*emptypb.Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Delete not implemented")
 }
 func (UnimplementedAnalyzerServer) mustEmbedUnimplementedAnalyzerServer() {}
 
@@ -126,6 +141,24 @@ func _Analyzer_ListActualSettings_Handler(srv interface{}, ctx context.Context, 
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Analyzer_Delete_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeleteSettingRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AnalyzerServer).Delete(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Analyzer_Delete_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AnalyzerServer).Delete(ctx, req.(*DeleteSettingRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Analyzer_ServiceDesc is the grpc.ServiceDesc for Analyzer service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -140,6 +173,10 @@ var Analyzer_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ListActualSettings",
 			Handler:    _Analyzer_ListActualSettings_Handler,
+		},
+		{
+			MethodName: "Delete",
+			Handler:    _Analyzer_Delete_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
