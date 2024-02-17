@@ -1,17 +1,25 @@
 syntax = "proto3";
 
 import "google/protobuf/empty.proto";
+import "google/protobuf/timestamp.proto";
 
 package analyzer;
 
 option go_package = "analyzer.v1";
 
-service Solver {
-    rpc MakeDecision(EventRequest) returns (google.protobuf.Empty) {};
+service Analyzer {
+    rpc Create(TaskRequest) returns (TaskResponse) {};
 }
 
-message EventRequest {
+message TaskRequest {
     string ticker = 1;
-    string event_type = 2;
-    float price = 3;
+    string strategyName = 2;
+    google.protobuf.Timestamp start = 3;
+    google.protobuf.Timestamp end = 4;
+    google.protobuf.Timestamp startInsideDay = 5;
+    google.protobuf.Timestamp endInsideDat = 6;
+}
+
+message TaskResponse {
+    string id = 1;
 }

@@ -11,7 +11,6 @@ import (
 	grpc "google.golang.org/grpc"
 	codes "google.golang.org/grpc/codes"
 	status "google.golang.org/grpc/status"
-	emptypb "google.golang.org/protobuf/types/known/emptypb"
 )
 
 // This is a compile-time assertion to ensure that this generated file
@@ -20,89 +19,89 @@ import (
 const _ = grpc.SupportPackageIsVersion7
 
 const (
-	Solver_MakeDecision_FullMethodName = "/analyzer.Solver/MakeDecision"
+	Analyzer_Create_FullMethodName = "/analyzer.Analyzer/Create"
 )
 
-// SolverClient is the client API for Solver service.
+// AnalyzerClient is the client API for Analyzer service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
-type SolverClient interface {
-	MakeDecision(ctx context.Context, in *EventRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
+type AnalyzerClient interface {
+	Create(ctx context.Context, in *TaskRequest, opts ...grpc.CallOption) (*TaskResponse, error)
 }
 
-type solverClient struct {
+type analyzerClient struct {
 	cc grpc.ClientConnInterface
 }
 
-func NewSolverClient(cc grpc.ClientConnInterface) SolverClient {
-	return &solverClient{cc}
+func NewAnalyzerClient(cc grpc.ClientConnInterface) AnalyzerClient {
+	return &analyzerClient{cc}
 }
 
-func (c *solverClient) MakeDecision(ctx context.Context, in *EventRequest, opts ...grpc.CallOption) (*emptypb.Empty, error) {
-	out := new(emptypb.Empty)
-	err := c.cc.Invoke(ctx, Solver_MakeDecision_FullMethodName, in, out, opts...)
+func (c *analyzerClient) Create(ctx context.Context, in *TaskRequest, opts ...grpc.CallOption) (*TaskResponse, error) {
+	out := new(TaskResponse)
+	err := c.cc.Invoke(ctx, Analyzer_Create_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-// SolverServer is the server API for Solver service.
-// All implementations must embed UnimplementedSolverServer
+// AnalyzerServer is the server API for Analyzer service.
+// All implementations must embed UnimplementedAnalyzerServer
 // for forward compatibility
-type SolverServer interface {
-	MakeDecision(context.Context, *EventRequest) (*emptypb.Empty, error)
-	mustEmbedUnimplementedSolverServer()
+type AnalyzerServer interface {
+	Create(context.Context, *TaskRequest) (*TaskResponse, error)
+	mustEmbedUnimplementedAnalyzerServer()
 }
 
-// UnimplementedSolverServer must be embedded to have forward compatible implementations.
-type UnimplementedSolverServer struct {
+// UnimplementedAnalyzerServer must be embedded to have forward compatible implementations.
+type UnimplementedAnalyzerServer struct {
 }
 
-func (UnimplementedSolverServer) MakeDecision(context.Context, *EventRequest) (*emptypb.Empty, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method MakeDecision not implemented")
+func (UnimplementedAnalyzerServer) Create(context.Context, *TaskRequest) (*TaskResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Create not implemented")
 }
-func (UnimplementedSolverServer) mustEmbedUnimplementedSolverServer() {}
+func (UnimplementedAnalyzerServer) mustEmbedUnimplementedAnalyzerServer() {}
 
-// UnsafeSolverServer may be embedded to opt out of forward compatibility for this service.
-// Use of this interface is not recommended, as added methods to SolverServer will
+// UnsafeAnalyzerServer may be embedded to opt out of forward compatibility for this service.
+// Use of this interface is not recommended, as added methods to AnalyzerServer will
 // result in compilation errors.
-type UnsafeSolverServer interface {
-	mustEmbedUnimplementedSolverServer()
+type UnsafeAnalyzerServer interface {
+	mustEmbedUnimplementedAnalyzerServer()
 }
 
-func RegisterSolverServer(s grpc.ServiceRegistrar, srv SolverServer) {
-	s.RegisterService(&Solver_ServiceDesc, srv)
+func RegisterAnalyzerServer(s grpc.ServiceRegistrar, srv AnalyzerServer) {
+	s.RegisterService(&Analyzer_ServiceDesc, srv)
 }
 
-func _Solver_MakeDecision_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(EventRequest)
+func _Analyzer_Create_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(TaskRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(SolverServer).MakeDecision(ctx, in)
+		return srv.(AnalyzerServer).Create(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: Solver_MakeDecision_FullMethodName,
+		FullMethod: Analyzer_Create_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(SolverServer).MakeDecision(ctx, req.(*EventRequest))
+		return srv.(AnalyzerServer).Create(ctx, req.(*TaskRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-// Solver_ServiceDesc is the grpc.ServiceDesc for Solver service.
+// Analyzer_ServiceDesc is the grpc.ServiceDesc for Analyzer service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
-var Solver_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "analyzer.Solver",
-	HandlerType: (*SolverServer)(nil),
+var Analyzer_ServiceDesc = grpc.ServiceDesc{
+	ServiceName: "analyzer.Analyzer",
+	HandlerType: (*AnalyzerServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
-			MethodName: "MakeDecision",
-			Handler:    _Solver_MakeDecision_Handler,
+			MethodName: "Create",
+			Handler:    _Analyzer_Create_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
