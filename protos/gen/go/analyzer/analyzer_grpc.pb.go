@@ -11,6 +11,7 @@ import (
 	grpc "google.golang.org/grpc"
 	codes "google.golang.org/grpc/codes"
 	status "google.golang.org/grpc/status"
+	emptypb "google.golang.org/protobuf/types/known/emptypb"
 )
 
 // This is a compile-time assertion to ensure that this generated file
@@ -19,14 +20,16 @@ import (
 const _ = grpc.SupportPackageIsVersion7
 
 const (
-	Analyzer_Create_FullMethodName = "/analyzer.Analyzer/Create"
+	Analyzer_Create_FullMethodName             = "/analyzer.Analyzer/Create"
+	Analyzer_ListActualSettings_FullMethodName = "/analyzer.Analyzer/ListActualSettings"
 )
 
 // AnalyzerClient is the client API for Analyzer service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type AnalyzerClient interface {
-	Create(ctx context.Context, in *TaskRequest, opts ...grpc.CallOption) (*TaskResponse, error)
+	Create(ctx context.Context, in *CreateSettingRequest, opts ...grpc.CallOption) (*CreateSettingResponse, error)
+	ListActualSettings(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*ActualSettingsResponse, error)
 }
 
 type analyzerClient struct {
@@ -37,9 +40,18 @@ func NewAnalyzerClient(cc grpc.ClientConnInterface) AnalyzerClient {
 	return &analyzerClient{cc}
 }
 
-func (c *analyzerClient) Create(ctx context.Context, in *TaskRequest, opts ...grpc.CallOption) (*TaskResponse, error) {
-	out := new(TaskResponse)
+func (c *analyzerClient) Create(ctx context.Context, in *CreateSettingRequest, opts ...grpc.CallOption) (*CreateSettingResponse, error) {
+	out := new(CreateSettingResponse)
 	err := c.cc.Invoke(ctx, Analyzer_Create_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *analyzerClient) ListActualSettings(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*ActualSettingsResponse, error) {
+	out := new(ActualSettingsResponse)
+	err := c.cc.Invoke(ctx, Analyzer_ListActualSettings_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -50,7 +62,8 @@ func (c *analyzerClient) Create(ctx context.Context, in *TaskRequest, opts ...gr
 // All implementations must embed UnimplementedAnalyzerServer
 // for forward compatibility
 type AnalyzerServer interface {
-	Create(context.Context, *TaskRequest) (*TaskResponse, error)
+	Create(context.Context, *CreateSettingRequest) (*CreateSettingResponse, error)
+	ListActualSettings(context.Context, *emptypb.Empty) (*ActualSettingsResponse, error)
 	mustEmbedUnimplementedAnalyzerServer()
 }
 
@@ -58,8 +71,11 @@ type AnalyzerServer interface {
 type UnimplementedAnalyzerServer struct {
 }
 
-func (UnimplementedAnalyzerServer) Create(context.Context, *TaskRequest) (*TaskResponse, error) {
+func (UnimplementedAnalyzerServer) Create(context.Context, *CreateSettingRequest) (*CreateSettingResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Create not implemented")
+}
+func (UnimplementedAnalyzerServer) ListActualSettings(context.Context, *emptypb.Empty) (*ActualSettingsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListActualSettings not implemented")
 }
 func (UnimplementedAnalyzerServer) mustEmbedUnimplementedAnalyzerServer() {}
 
@@ -75,7 +91,7 @@ func RegisterAnalyzerServer(s grpc.ServiceRegistrar, srv AnalyzerServer) {
 }
 
 func _Analyzer_Create_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(TaskRequest)
+	in := new(CreateSettingRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -87,7 +103,25 @@ func _Analyzer_Create_Handler(srv interface{}, ctx context.Context, dec func(int
 		FullMethod: Analyzer_Create_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(AnalyzerServer).Create(ctx, req.(*TaskRequest))
+		return srv.(AnalyzerServer).Create(ctx, req.(*CreateSettingRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Analyzer_ListActualSettings_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(emptypb.Empty)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AnalyzerServer).ListActualSettings(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Analyzer_ListActualSettings_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AnalyzerServer).ListActualSettings(ctx, req.(*emptypb.Empty))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -102,6 +136,10 @@ var Analyzer_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "Create",
 			Handler:    _Analyzer_Create_Handler,
+		},
+		{
+			MethodName: "ListActualSettings",
+			Handler:    _Analyzer_ListActualSettings_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

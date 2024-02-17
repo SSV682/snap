@@ -8,10 +8,11 @@ package analyzer;
 option go_package = "analyzer.v1";
 
 service Analyzer {
-    rpc Create(TaskRequest) returns (TaskResponse) {};
+    rpc Create(CreateSettingRequest) returns (CreateSettingResponse) {};
+    rpc ListActualSettings(google.protobuf.Empty) returns (ActualSettingsResponse) {};
 }
 
-message TaskRequest {
+message CreateSettingRequest {
     string ticker = 1;
     string strategyName = 2;
     google.protobuf.Timestamp start = 3;
@@ -20,6 +21,23 @@ message TaskRequest {
     google.protobuf.Timestamp endInsideDat = 6;
 }
 
-message TaskResponse {
+message CreateSettingResponse {
     string id = 1;
 }
+
+message ActualSettingsResponse{
+    repeated Setting data = 1;
+}
+
+message Setting {
+    string id = 1;
+    string ticker = 2;
+    string strategyName = 3;
+    google.protobuf.Timestamp start = 4;
+    google.protobuf.Timestamp end = 5;
+    google.protobuf.Timestamp startInsideDay = 6;
+    google.protobuf.Timestamp endInsideDat = 7;
+}
+
+
+
