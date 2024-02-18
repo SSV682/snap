@@ -4,10 +4,6 @@ import (
 	"analyzer/internal/entity"
 	"analyzer/internal/service"
 	"analyzer/internal/service/strategies"
-	"facade/internal/dto"
-	"fmt"
-
-	"github.com/pkg/errors"
 )
 
 type TradingStrategy interface {
@@ -50,26 +46,26 @@ func NewBackTestService(cfg *Config) *Service {
 	}
 }
 
-func (s *Service) BackTest(filter dto.Filter) (entity.BackTestResult, error) {
-	usedStrategy, ok := s.strategies[filter.StrategyName]
-	if !ok {
-		return entity.BackTestResult{}, errors.New(fmt.Sprintf("unsupported strategy: %s", filter.StrategyName))
-	}
-
-	candles, err := s.tradingInfoProvider.HistoricCandles(filter.Ticker, filter.StartTime, filter.EndTime)
-	if err != nil {
-		return entity.BackTestResult{}, fmt.Errorf("historic candles: %v", err)
-	}
-
-	backTest := NewBackTest(&backTestConfig{
-		candles:        candles,
-		strategy:       usedStrategy,
-		calculateTaxFn: s.brokerProvider.GetTaxFn(),
-		strategyInCh:   s.strategyInCh,
-		strategyOutCh:  s.strategyOutCh,
-	})
-
-	result := backTest.Do()
-
-	return result, nil
-}
+//func (s *Service) BackTest(filter dto.Filter) (entity.BackTestResult, error) {
+//	usedStrategy, ok := s.strategies[filter.StrategyName]
+//	if !ok {
+//		return entity.BackTestResult{}, errors.New(fmt.Sprintf("unsupported strategy: %s", filter.StrategyName))
+//	}
+//
+//	candles, err := s.tradingInfoProvider.HistoricCandles(filter.Ticker, filter.StartTime, filter.EndTime)
+//	if err != nil {
+//		return entity.BackTestResult{}, fmt.Errorf("historic candles: %v", err)
+//	}
+//
+//	backTest := NewBackTest(&backTestConfig{
+//		candles:        candles,
+//		strategy:       usedStrategy,
+//		calculateTaxFn: s.brokerProvider.GetTaxFn(),
+//		strategyInCh:   s.strategyInCh,
+//		strategyOutCh:  s.strategyOutCh,
+//	})
+//
+//	result := backTest.Do()
+//
+//	return result, nil
+//}

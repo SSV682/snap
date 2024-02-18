@@ -98,12 +98,12 @@ type ListSettingsResponse struct {
 }
 
 type createSettingRequest struct {
-	Start              *int64  `json:"start_time" validate:"required"`
-	End                *int64  `json:"end_time" validate:"required"`
-	StartTimeInsideDay *int64  `json:"start_inside_day" validate:"required"`
-	EndTimeInsideDay   *int64  `json:"end_inside_day" validate:"required"`
-	Ticker             *string `json:"ticker" validate:"required"`
-	StrategyName       *string `json:"strategy_name" validate:"required"`
+	Start              string `json:"start_time" validate:"required"`
+	End                string `json:"end_time" validate:"required"`
+	StartTimeInsideDay string `json:"start_inside_day" validate:"required"`
+	EndTimeInsideDay   string `json:"end_inside_day" validate:"required"`
+	Ticker             string `json:"ticker" validate:"required"`
+	StrategyName       string `json:"strategy_name" validate:"required"`
 }
 
 type createSettingResponse struct {

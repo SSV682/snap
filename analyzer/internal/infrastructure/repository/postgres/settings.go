@@ -58,6 +58,7 @@ func (r *SettingsRepository) Create(ctx context.Context, setting *entity.Strateg
 		setting.StrategyTimeFrom,
 		setting.StrategyTimeTo,
 		setting.TradingTimeFrom,
+		setting.TradingTimeTo,
 	).Scan(&setting.ID); err != nil {
 		return nil, fmt.Errorf("insert setting: %v", err)
 	}

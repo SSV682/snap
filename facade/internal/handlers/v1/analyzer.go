@@ -40,14 +40,25 @@ func (a *API) CreateSetting(ctx *routing.Context) error {
 		return err
 	}
 
-	result, err := a.analyzerClient.CreateSetting(ctx, &analyzer_v1.CreateSettingRequest{
-		Ticker:         *req.Ticker,
-		StrategyName:   *req.StrategyName,
-		Start:          timestamppb.New(time.Unix(*req.Start, 0)),
-		End:            timestamppb.New(time.Unix(*req.End, 0)),
-		StartInsideDay: timestamppb.New(time.Unix(*req.StartTimeInsideDay, 0)),
-		EndInsideDay:   timestamppb.New(time.Unix(*req.EndTimeInsideDay, 0)),
-	})
+	csr := &analyzer_v1.CreateSettingRequest{
+		Ticker:       req.Ticker,
+		StrategyName: req.StrategyName,
+	}
+
+	if t, err := time.Parse(datetimeStringFormat, req.Start); err != nil {
+		csr.Start = timestamppb.New(t)
+	}
+	if t, err := time.Parse(datetimeStringFormat, req.End); err != nil {
+		csr.End = timestamppb.New(t)
+	}
+	if t, err := time.Parse(datetimeStringFormat, req.StartTimeInsideDay); err != nil {
+		csr.StartInsideDay = timestamppb.New(t)
+	}
+	if t, err := time.Parse(datetimeStringFormat, req.EndTimeInsideDay); err != nil {
+		csr.EndInsideDay = timestamppb.New(t)
+	}
+
+	result, err := a.analyzerClient.CreateSetting(ctx, csr)
 	if err != nil {
 		return err
 	}

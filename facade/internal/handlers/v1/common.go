@@ -10,6 +10,8 @@ import (
 
 const (
 	ContentTypeApplicationJson = "application/json"
+
+	datetimeStringFormat = "2024-02-06T10:00:00.731Z"
 )
 
 type MultiError []error
