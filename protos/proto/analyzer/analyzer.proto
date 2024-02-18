@@ -8,11 +8,15 @@ package analyzer;
 option go_package = "analyzer.v1";
 
 service Analyzer {
+    // settings
     rpc CreateSetting(CreateSettingRequest) returns (CreateSettingResponse) {};
     rpc ListActualSettings(google.protobuf.Empty) returns (ActualSettingsResponse) {};
     rpc DeleteSetting(DeleteSettingRequest) returns (google.protobuf.Empty) {};
+    // back test
+    rpc BackTest(BackTestRequest) returns (BackTestResponse) {};
 }
 
+// setting
 message CreateSettingRequest {
     string ticker = 1;
     string strategyName = 2;
@@ -44,4 +48,23 @@ message DeleteSettingRequest{
     int64 id = 1;
 }
 
+// back tests
+message BackTestRequest {
+    string ticker = 1;
+    string strategyName = 2;
+    google.protobuf.Timestamp start = 3;
+    google.protobuf.Timestamp end = 4;
+}
 
+message BackTestResponse {
+    int64 NumberDials = 1;
+    float PNL = 2;
+    repeated Dial dials = 3;
+}
+
+message Dial {
+    float Buy =  1;
+    float Sell = 2;
+    float PNL = 3;
+    int64 Period = 4;
+}

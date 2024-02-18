@@ -23,15 +23,19 @@ const (
 	Analyzer_CreateSetting_FullMethodName      = "/analyzer.Analyzer/CreateSetting"
 	Analyzer_ListActualSettings_FullMethodName = "/analyzer.Analyzer/ListActualSettings"
 	Analyzer_DeleteSetting_FullMethodName      = "/analyzer.Analyzer/DeleteSetting"
+	Analyzer_BackTest_FullMethodName           = "/analyzer.Analyzer/BackTest"
 )
 
 // AnalyzerClient is the client API for Analyzer service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type AnalyzerClient interface {
+	// settings
 	CreateSetting(ctx context.Context, in *CreateSettingRequest, opts ...grpc.CallOption) (*CreateSettingResponse, error)
 	ListActualSettings(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*ActualSettingsResponse, error)
 	DeleteSetting(ctx context.Context, in *DeleteSettingRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
+	// back test
+	BackTest(ctx context.Context, in *BackTestRequest, opts ...grpc.CallOption) (*BackTestResponse, error)
 }
 
 type analyzerClient struct {
@@ -69,13 +73,25 @@ func (c *analyzerClient) DeleteSetting(ctx context.Context, in *DeleteSettingReq
 	return out, nil
 }
 
+func (c *analyzerClient) BackTest(ctx context.Context, in *BackTestRequest, opts ...grpc.CallOption) (*BackTestResponse, error) {
+	out := new(BackTestResponse)
+	err := c.cc.Invoke(ctx, Analyzer_BackTest_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // AnalyzerServer is the server API for Analyzer service.
 // All implementations must embed UnimplementedAnalyzerServer
 // for forward compatibility
 type AnalyzerServer interface {
+	// settings
 	CreateSetting(context.Context, *CreateSettingRequest) (*CreateSettingResponse, error)
 	ListActualSettings(context.Context, *emptypb.Empty) (*ActualSettingsResponse, error)
 	DeleteSetting(context.Context, *DeleteSettingRequest) (*emptypb.Empty, error)
+	// back test
+	BackTest(context.Context, *BackTestRequest) (*BackTestResponse, error)
 	mustEmbedUnimplementedAnalyzerServer()
 }
 
@@ -91,6 +107,9 @@ func (UnimplementedAnalyzerServer) ListActualSettings(context.Context, *emptypb.
 }
 func (UnimplementedAnalyzerServer) DeleteSetting(context.Context, *DeleteSettingRequest) (*emptypb.Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method DeleteSetting not implemented")
+}
+func (UnimplementedAnalyzerServer) BackTest(context.Context, *BackTestRequest) (*BackTestResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method BackTest not implemented")
 }
 func (UnimplementedAnalyzerServer) mustEmbedUnimplementedAnalyzerServer() {}
 
@@ -159,6 +178,24 @@ func _Analyzer_DeleteSetting_Handler(srv interface{}, ctx context.Context, dec f
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Analyzer_BackTest_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(BackTestRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AnalyzerServer).BackTest(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Analyzer_BackTest_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AnalyzerServer).BackTest(ctx, req.(*BackTestRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Analyzer_ServiceDesc is the grpc.ServiceDesc for Analyzer service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -177,6 +214,10 @@ var Analyzer_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "DeleteSetting",
 			Handler:    _Analyzer_DeleteSetting_Handler,
+		},
+		{
+			MethodName: "BackTest",
+			Handler:    _Analyzer_BackTest_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
