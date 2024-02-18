@@ -19,7 +19,7 @@ message CreateSettingRequest {
     google.protobuf.Timestamp start = 3;
     google.protobuf.Timestamp end = 4;
     google.protobuf.Timestamp startInsideDay = 5;
-    google.protobuf.Timestamp endInsideDat = 6;
+    google.protobuf.Timestamp endInsideDay = 6;
 }
 
 message CreateSettingResponse {
