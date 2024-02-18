@@ -1,8 +1,6 @@
 package app
 
 import (
-	"analyzer/internal/bot/telegram"
-	"analyzer/internal/infrastructure/solver"
 	"context"
 	"io"
 	"os"
@@ -10,35 +8,28 @@ import (
 	"syscall"
 	"time"
 
+	grpcapp "analyzer/internal/app/grpc"
 	"analyzer/internal/config"
-	"analyzer/internal/handlers"
-	v1 "analyzer/internal/handlers/v1"
 	"analyzer/internal/infrastructure/broker"
 	"analyzer/internal/infrastructure/repository/postgres"
-	"analyzer/internal/service"
-	"analyzer/internal/service/backtest"
+	"analyzer/internal/infrastructure/solver"
 	"analyzer/internal/service/manager"
 
-	"github.com/go-playground/validator/v10"
-	routing "github.com/qiangxue/fasthttp-routing"
 	"github.com/russianinvestments/invest-api-go-sdk/investgo"
 	log "github.com/sirupsen/logrus"
-	"github.com/valyala/fasthttp"
 )
 
 type Runner interface {
-	Run()
+	Run() error
 }
 
 type App struct {
-	cfg        *config.Config
-	httpServer *fasthttp.Server
-	runners    []Runner
-	closers    []io.Closer
+	cfg     *config.Config
+	runners []Runner
+	closers []io.Closer
 }
 
 func NewApp(cfg config.Config) *App {
-	router := routing.New()
 	var runners []Runner
 	var closers []io.Closer
 
@@ -56,6 +47,8 @@ func NewApp(cfg config.Config) *App {
 		nil,
 	)
 	if err != nil {
+		log.Fatalf("Failed to: %v", err)
+
 		return nil
 	}
 
@@ -84,41 +77,44 @@ func NewApp(cfg config.Config) *App {
 	runners = append(runners, managerService)
 	closers = append(closers, managerService)
 
-	telegramBot := telegram.NewBot(&cfg.Bots.Telegram)
-	runners = append(runners, telegramBot)
-	closers = append(closers, telegramBot)
+	// TODO: return BackTestService
+	//backTestService := backtest.NewBackTestService(
+	//	&backtest.Config{
+	//		TradingInfoProvider: brokerClient,
+	//		BrokerProvider:      brokerClient,
+	//	},
+	//)
 
-	backTestService := backtest.NewBackTestService(
-		&backtest.Config{
-			TradingInfoProvider: brokerClient,
-			BrokerProvider:      brokerClient,
-		},
-	)
+	grpcServer := grpcapp.NewApp(&grpcapp.Config{
+		Port:           cfg.GRPC.Port,
+		Timeout:        cfg.GRPC.Timeout,
+		ManagerService: managerService,
+	})
 
-	tradingService := service.NewTradingService(
-		&service.TradingConfig{
-			TradingInfoProvider: brokerClient,
-		},
-	)
+	// add the gRPC server to the list of runners
+	runners = append(runners, grpcServer)
+	closers = append(closers, grpcServer)
 
-	handlers.Register(
-		router,
-		v1.NewInvestHandler(v1.Config{
-			BackTestService: backTestService,
-			TradingService:  tradingService,
-			Validator:       validator.New(),
-		}),
-	)
+	//TODO: return tradingService
+	//tradingService := service.NewTradingService(
+	//	&service.TradingConfig{
+	//		TradingInfoProvider: brokerClient,
+	//	},
+	//)
+
+	//handlers.Register(
+	//	router,
+	//	v1.NewInvestHandler(v1.Config{
+	//		BackTestService: backTestService,
+	//		TradingService:  tradingService,
+	//		Validator:       validator.New(),
+	//	}),
+	//)
 
 	log.Info("App created")
 
 	return &App{
-		cfg: &cfg,
-		httpServer: &fasthttp.Server{
-			Handler:      router.HandleRequest,
-			ReadTimeout:  cfg.HTTPServer.ReadTimeout,
-			WriteTimeout: cfg.HTTPServer.WriteTimeout,
-		},
+		cfg:     &cfg,
 		runners: runners,
 		closers: closers,
 	}
@@ -126,14 +122,10 @@ func NewApp(cfg config.Config) *App {
 
 func (a *App) Run() {
 	for _, runner := range a.runners {
-		runner.Run()
-	}
-
-	go func() {
-		if err := a.httpServer.ListenAndServe(a.cfg.HTTPServer.Listen); err != nil {
-			log.Fatalf("Failed listen and serve http server: %v", err)
+		if err := runner.Run(); err != nil {
+			log.Fatalf("Failed to run runner: %v", err)
 		}
-	}()
+	}
 
 	log.Info("App has been started")
 	a.waitGracefulShutdown()
@@ -155,13 +147,17 @@ func (a *App) waitGracefulShutdown() {
 	log.Infof("Caught signal %s. Shutting down...", <-quit)
 
 	done := make(chan struct{})
+
 	go func() {
-		// try to close http server connections
-		if err := a.httpServer.Shutdown(); err != nil {
-			log.Errorf("Failed to shutdown http server: %v", err)
+		// try to close background workers
+		for _, closer := range a.closers {
+			if err := closer.Close(); err != nil {
+				log.Errorf("Failed to close closer: %v", err)
+			}
 		}
 
-		close(done)
+		// wait for all background workers to finish
+		<-done
 	}()
 
 	select {
@@ -170,9 +166,5 @@ func (a *App) waitGracefulShutdown() {
 	}
 
 	// try to close background processes
-	for _, c := range a.closers {
-		if err := c.Close(); err != nil {
-			log.Errorf("Failed to close: %v", err)
-		}
-	}
+
 }

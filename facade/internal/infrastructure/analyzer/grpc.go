@@ -1,16 +1,16 @@
-package solver
+package analyzer
 
 import (
-	"analyzer/internal/entity"
 	"context"
 	"fmt"
 	"time"
 
-	solverv1 "github.com/SSV682/snap/protos/gen/go/solver"
+	"github.com/SSV682/snap/protos/gen/go/analyzer"
 	"github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors/retry"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/credentials/insecure"
+	"google.golang.org/protobuf/types/known/emptypb"
 )
 
 type GRCPConfig struct {
@@ -20,7 +20,7 @@ type GRCPConfig struct {
 }
 
 type GRCPClient struct {
-	client solverv1.SolverClient
+	client analyzer_v1.AnalyzerClient
 }
 
 // NewGRCPClient TODO: set security
@@ -43,28 +43,18 @@ func NewGRCPClient(ctx context.Context, cfg *GRCPConfig) (*GRCPClient, error) {
 	}
 
 	return &GRCPClient{
-		client: solverv1.NewSolverClient(cc),
+		client: analyzer_v1.NewAnalyzerClient(cc),
 	}, nil
 }
 
-// MakeDecision sends an event to the gRPC server and returns an error if one occurs.
-func (c *GRCPClient) MakeDecision(ctx context.Context, event entity.Event) error {
-	var eventType solverv1.EventType
+func (c *GRCPClient) ListActualSettings(ctx context.Context) (*analyzer_v1.ActualSettingsResponse, error) {
+	return c.client.ListActualSettings(ctx, &emptypb.Empty{})
+}
 
-	switch event.Typ {
-	case entity.Buy:
-		eventType = solverv1.EventType_EVENT_TYPE_BUY
-	case entity.Sell:
-		eventType = solverv1.EventType_EVENT_TYPE_SELL
-	}
+func (c *GRCPClient) CreateSetting(ctx context.Context, req *analyzer_v1.CreateSettingRequest) (*analyzer_v1.CreateSettingResponse, error) {
+	return c.client.CreateSetting(ctx, req)
+}
 
-	if _, err := c.client.MakeDecision(ctx, &solverv1.EventRequest{
-		Ticker:    event.Ticker,
-		EventType: eventType,
-		Price:     float32(event.Price),
-	}); err != nil {
-		return err
-	}
-
-	return nil
+func (c *GRCPClient) DeleteSetting(ctx context.Context, req *analyzer_v1.DeleteSettingRequest) (*emptypb.Empty, error) {
+	return c.client.DeleteSetting(ctx, req)
 }

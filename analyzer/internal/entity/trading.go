@@ -56,6 +56,7 @@ type Instrument struct {
 }
 
 type StrategySettings struct {
+	ID               int64
 	Ticker           string
 	Strategy         string
 	StrategyTimeFrom time.Time

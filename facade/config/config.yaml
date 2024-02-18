@@ -1,0 +1,18 @@
+clients:
+  solver:
+    address: 127.0.0.1:44044
+    timeout: 50s
+    retries: 3
+  analyzer:
+    address: 127.0.0.1:44066
+    timeout: 50s
+    retries: 3
+
+bots:
+  telegram:
+    token: ""
+
+httpserver:
+  listen: :8080
+  read_timeout: 60s
+  write_timeout: 60s

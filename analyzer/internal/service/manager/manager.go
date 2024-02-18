@@ -14,6 +14,8 @@ import (
 
 type StrategySettingsRepository interface {
 	List(ctx context.Context) ([]*entity.StrategySettings, error)
+	Create(ctx context.Context, setting *entity.StrategySettings) (*entity.StrategySettings, error)
+	Delete(ctx context.Context, id int64) error
 }
 
 type BrokerProvider interface {
@@ -82,7 +84,7 @@ func NewManager(cfg Config) *Manager {
 }
 
 // Run runs the manager
-func (m *Manager) Run() {
+func (m *Manager) Run() error {
 	ctx, cancel := context.WithCancel(context.Background())
 	m.cancelFn = cancel
 
@@ -97,6 +99,8 @@ func (m *Manager) Run() {
 
 		m.run(ctx)
 	}()
+
+	return nil
 }
 
 // loadStrategySettings loads strategy settings from storage and sets them to the strategies
@@ -156,6 +160,32 @@ func (m *Manager) Close() error {
 	}
 
 	m.wg.Wait()
+
+	return nil
+}
+
+func (m *Manager) ListActualStrategiesSettings(ctx context.Context) ([]*entity.StrategySettings, error) {
+	settings, err := m.settingsRepository.List(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("get strategy settings: %v", err)
+	}
+
+	return settings, nil
+}
+
+func (m *Manager) CreateSetting(ctx context.Context, setting *entity.StrategySettings) (settings *entity.StrategySettings, err error) {
+	settings, err = m.settingsRepository.Create(ctx, setting)
+	if err != nil {
+		return nil, fmt.Errorf("create strategy setting: %v", err)
+	}
+
+	return setting, nil
+}
+
+func (m *Manager) DeleteSetting(ctx context.Context, id int64) error {
+	if err := m.settingsRepository.Delete(ctx, id); err != nil {
+		return fmt.Errorf("delete strategy setting: %v", err)
+	}
 
 	return nil
 }

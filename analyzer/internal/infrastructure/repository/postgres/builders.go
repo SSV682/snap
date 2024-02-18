@@ -14,7 +14,8 @@ type settingsSelectBuilder struct {
 
 func newSettingsSelectBuilder() *settingsSelectBuilder {
 	selectBuilder := newQueryBuilder().
-		Select("ss.ticker",
+		Select("ss.id",
+			"ss.ticker",
 			"ss.strategy",
 			"ss.strategy_time_from",
 			"ss.strategy_time_to",

@@ -1,10 +1,10 @@
 package backtest
 
 import (
-	"analyzer/internal/dto"
 	"analyzer/internal/entity"
 	"analyzer/internal/service"
 	"analyzer/internal/service/strategies"
+	"facade/internal/dto"
 	"fmt"
 
 	"github.com/pkg/errors"

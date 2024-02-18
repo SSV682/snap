@@ -61,6 +61,7 @@ func (t *MyTime) UnmarshalText(value string) error {
 }
 
 type strategySettingsRow struct {
+	ID               int64     `db:"id"`
 	Ticker           string    `db:"ticker"`
 	Strategy         string    `db:"strategy"`
 	StrategyTimeFrom time.Time `db:"strategy_time_from"`
@@ -71,6 +72,7 @@ type strategySettingsRow struct {
 
 func (r strategySettingsRow) ToModel() *entity.StrategySettings {
 	return &entity.StrategySettings{
+		ID:               r.ID,
 		Ticker:           r.Ticker,
 		Strategy:         r.Strategy,
 		StrategyTimeFrom: r.StrategyTimeFrom,

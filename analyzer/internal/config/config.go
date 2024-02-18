@@ -1,7 +1,6 @@
 package config
 
 import (
-	"analyzer/internal/bot/telegram"
 	"time"
 
 	"github.com/ilyakaznacheev/cleanenv"
@@ -102,33 +101,27 @@ type DatabaseConfig struct {
 	Postgres SQLConfig `yaml:"postgres"`
 }
 
-type HTTPServerConfig struct {
-	Listen       string        `yaml:"listen"`
-	ReadTimeout  time.Duration `yaml:"read_timeout"`
-	WriteTimeout time.Duration `yaml:"write_timeout"`
-}
-
 type GRPCClient struct {
 	Address string        `yaml:"address"`
 	Timeout time.Duration `yaml:"timeout"`
 	Retries int           `yaml:"retries"`
 }
 
+type GRPCConfig struct {
+	Port    int           `yaml:"port"`
+	Timeout time.Duration `yaml:"timeout"`
+}
+
 type ClientsConfig struct {
 	Solver GRPCClient `yaml:"solver"`
 }
 
-type BotsConfig struct {
-	Telegram telegram.Config `yaml:"telegram"`
-}
-
 type Config struct {
-	Invest          investgo.Config  `yaml:"invest"`
-	HTTPServer      HTTPServerConfig `yaml:"httpserver"`
-	Databases       DatabaseConfig   `yaml:"databases"`
-	GracefulTimeout time.Duration    `yaml:"graceful_timeout"`
-	Clients         ClientsConfig    `yaml:"clients"`
-	Bots            BotsConfig       `yaml:"bots"`
+	Invest          investgo.Config `yaml:"invest"`
+	Databases       DatabaseConfig  `yaml:"databases"`
+	GracefulTimeout time.Duration   `yaml:"graceful_timeout"`
+	Clients         ClientsConfig   `yaml:"clients"`
+	GRPC            GRPCConfig      `yaml:"grpc"`
 }
 
 func ReadConfig(filePath string) (Config, error) {
